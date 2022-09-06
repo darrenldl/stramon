@@ -1,4 +1,4 @@
 (executable
  (public_name stramon)
  (name main)
- (libraries ))
+ (libraries stramon))
