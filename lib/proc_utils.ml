@@ -1,4 +1,4 @@
-(* type process_status = Unix.process_status
+(* tmpe process_status = Unix.process_status
 
 type exec_result = {
   cmd : string;
@@ -18,15 +18,44 @@ let pp_exec_result (formatter : Format.formatter) res =
   *)
 
 let exec cmd : int * in_channel =
-  let pipe_name =
-    Fmt.str "/tmp/stramon-%d" (Random.int 1_000_000)
+  let rec make_pipe () =
+    let pipe_name =
+      Fmt.str "/tmp/stramon-%d" (Random.int 1_000_000)
+    in
+    try
+      Printf.printf "trying %s\n" pipe_name;
+      flush stdout;
+      Unix.mkfifo pipe_name 0o664;
+      Printf.printf "pipe made\n";
+      flush stdout;
+      pipe_name
+    with
+    | Unix.Unix_error _ ->
+      make_pipe ()
   in
-  Unix.mkfifo pipe_name 0o664;
-  let pipe = open_in_bin pipe_name in
+  let pipe_name = make_pipe () in
+  Printf.printf "test1\n";
+  flush stdout;
   let wrapped_cmd =
-    Fmt.str "strace -v -xx -f -o %s -- %s" pipe_name cmd
+    [ "strace"
+    ; "-v"
+    ; "-xx"
+    ; "-f"
+    ; "-o"
+    ; pipe_name
+    ; "--"
+    ]
+    @
+    cmd
   in
   let pid =
-    Unix.(create_process wrapped_cmd [||] stdin stdout stderr)
+    Unix.(create_process "strace" (Array.of_list wrapped_cmd) stdin stdout stderr)
   in
-  (pid, pipe)
+  Printf.printf "test2\n";
+  flush stdout;
+  Printf.printf "pid: %d\n" pid;
+  flush stdout;
+  (* let pid =
+    Unix.(create_process "ls" [|"ls"|] stdin stdout stderr)
+  in *)
+  (pid, open_in_bin pipe_name)

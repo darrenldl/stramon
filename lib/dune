@@ -1,4 +1,6 @@
 (library
- (name stramon)
- (libraries fmt)
+ (flags     (-w "+a-4-9-29-37-40-42-44-48-50-32-30-45-70@6@8"))
+ (name stramon_lib)
+ (libraries fmt
+            unix)
 )
