@@ -1,2 +1,4 @@
 (library
- (name stramon))
+ (name stramon)
+ (libraries fmt)
+)
