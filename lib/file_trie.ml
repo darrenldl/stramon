@@ -8,7 +8,7 @@ let empty = { children = String_map.empty; is_terminal = false }
 let add (path : string) (t : t) : t =
   let rec aux t parts =
     match parts with
-    | [] -> { t with is_terminal = true }
+    | [] | [""] -> { t with is_terminal = true }
     | x :: xs ->
       let children =
         String_map.find_opt x t.children
