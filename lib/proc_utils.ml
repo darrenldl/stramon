@@ -38,7 +38,7 @@ let exec cmd : int * in_channel =
     ; "-o"
     ; pipe_name
     (* ; "-e"
-    ; "trace=%file,%process,%net" *)
+       ; "trace=%file,%process,%net" *)
     ; "--"
     ]
     @

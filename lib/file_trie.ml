@@ -12,10 +12,10 @@ let add (path : string) (t : t) : t =
     | x :: xs ->
       let children =
         String_map.find_opt x t.children
-    |> Option.value ~default:empty
-    |> (fun sub_trie ->
-        String_map.add x (aux sub_trie xs) t.children
-    )
+        |> Option.value ~default:empty
+        |> (fun sub_trie ->
+            String_map.add x (aux sub_trie xs) t.children
+          )
       in
       { t with children }
   in
