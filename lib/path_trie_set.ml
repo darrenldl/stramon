@@ -44,3 +44,24 @@ let mem (path : string) (t : t) : bool =
   in
   check_path path;
   aux t (parts_of_path path)
+
+let to_seq (t : t) : string Seq.t =
+  let rec aux (t : t) : string list Seq.t =
+    String_map.to_seq t.children
+    |> Seq.flat_map (fun (k, v) ->
+        Seq.map (fun l ->
+            k :: l
+          )
+          (aux v)
+      )
+    |> (fun s ->
+        if t.is_terminal then
+          Seq.cons [] s
+        else
+          s
+      )
+  in
+  aux t
+  |> Seq.map (fun l ->
+      String_utils.concat_file_names ("/" :: l)
+    )
