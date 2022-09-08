@@ -4,5 +4,6 @@
  (libraries fmt
             unix
             containers
+            angstrom
             )
 )
