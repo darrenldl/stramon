@@ -68,3 +68,26 @@ let string_of_hex_string (s : string) : string option =
       )
     in
     aux 0
+
+let find_char ?(start = 0) (c : char) (s : string) : int option =
+  let str_len = String.length s in
+  let rec aux i =
+    if i >= str_len then None
+    else
+    if c = s.[i] then Some i
+    else
+      aux (succ i)
+  in
+  aux start
+
+let find_char_rev ?(start : int option) (c : char) (s : string) : int option =
+  let str_len = String.length s in
+  let start = Option.value ~default:(str_len - 1) start  in
+  let rec aux i =
+    if i <= 0 then None
+    else
+    if c = s.[i] then Some i
+    else
+      aux (pred i)
+  in
+  aux start
