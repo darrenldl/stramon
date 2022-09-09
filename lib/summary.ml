@@ -1,7 +1,7 @@
 type t = {
   file : Path_access.t;
   dir : Path_access.t;
-  link : Path_access.t;
+  link : string Path_trie.t;
 }
 
 let empty : t =

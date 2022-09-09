@@ -14,7 +14,7 @@ let empty : t =
     rw = Path_trie_set.empty;
   }
 
-let add (mode : mode) (path : string) (t : t) : t =
+let add (mode : mode) (path : Abs_path.t) (t : t) : t =
   match mode with
   | `R -> { t with r = Path_trie_set.add path t.r }
   | `Rw -> { t with rw = Path_trie_set.add path t.rw }
