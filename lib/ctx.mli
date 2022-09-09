@@ -2,6 +2,8 @@ type t
 
 val make : unit -> t
 
+val summary : t -> Summary.t
+
 val get_unfinished_line : pid:int -> t -> string option
 
 val clear_unfinished_line : pid:int -> t -> unit

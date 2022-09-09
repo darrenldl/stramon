@@ -11,6 +11,8 @@ let make () : t =
     summary = ref Summary.empty;
   }
 
+let summary t = !(t.summary)
+
 let set_unfinished_line ~pid text t =
   Hashtbl.replace t.unfinished_line pid text
 

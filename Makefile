@@ -10,7 +10,7 @@ all:
 
 .PHONY: release-static
 release-static :
-	OCAMLPARAM='_,ccopt=-static' dune build --release src/stramon.exe
+	OCAMLPARAM='_,ccopt=-static' dune build --release bin/stramon.exe
 
 .PHONY: run
 run:
