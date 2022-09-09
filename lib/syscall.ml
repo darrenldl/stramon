@@ -12,8 +12,9 @@ type term =
   | String of string
   | Int of int
   | Pointer of string
+  | Struct of (string * term) list
 
-type t = {
+type syscall = {
   name : string;
   args : term array;
   ret : term;
@@ -48,7 +49,7 @@ module Parsers = struct
     )
 end
 
-let parse (str : string) : blob option =
+let blob_of_string (str : string) : blob option =
   let str_len = String.length str in
   let* open_paren_pos = String_utils.find_char '(' str in
   let* ret_eq_pos = String_utils.find_char_rev '=' str in
@@ -61,11 +62,14 @@ let parse (str : string) : blob option =
   | Ok name ->
     match
       Angstrom.(parse_string ~consume:Consume.Prefix) Parsers.blob_ret_p
-        (StringLabels.sub ~pos:ret_eq_pos ~len:(str_len - ret_eq_pos) str)
+        (StringLabels.sub ~pos:(ret_eq_pos + 1) ~len:(str_len - (ret_eq_pos + 1)) str)
     with
     | Error _ -> None
     | Ok (ret, errno, errno_msg) ->
       let arg_text =
-        StringLabels.sub ~pos:(open_paren_pos + 1) ~len:(close_paren_pos-open_paren_pos) str
+        StringLabels.sub ~pos:(open_paren_pos + 1) ~len:(close_paren_pos - (open_paren_pos + 1)) str
       in
       Some { name; arg_text; ret; errno; errno_msg }
+
+let syscall_of_blob (blob : blob) : syscall option =
+  None

@@ -1,9 +1,13 @@
 let init () =
   Random.self_init ()
 
-let process_line (ctx : Ctx.t) (line : Strace_pipe.line) =
-  let open Strace_pipe in
-  Printf.printf "pid %d: %s\n" line.pid line.text
+let process_line (ctx : Ctx.t) ({ pid; text } : Strace_pipe.line) =
+  match Syscall.blob_of_string text with
+  | None -> ()
+  | Some blob ->
+    match blob.name with
+    | "openat" | "open" -> Printf.printf "pid: %d, %s(%s) = %s\n" pid blob.name blob.arg_text blob.ret
+    | _ -> ()
 
 let monitor (cmd : string list) : Summary.t =
   let ctx = Ctx.make () in
