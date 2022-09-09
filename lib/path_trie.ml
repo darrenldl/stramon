@@ -6,8 +6,8 @@ type 'a t = {
 let empty : 'a t =
   {
     value = None;
-  children = String_map.empty;
-}
+    children = String_map.empty;
+  }
 
 let add (path : Abs_path.t) (v : 'a) (t : 'a t) : 'a t =
   let rec aux t parts =
@@ -37,7 +37,7 @@ let find (path : Abs_path.t) (t : 'a t) : 'a option =
   aux t (Abs_path.parts path)
 
 (* let to_seq (t : t) : string Seq.t =
-  let rec aux (t : t) : string list Seq.t =
+   let rec aux (t : t) : string list Seq.t =
     String_map.to_seq t.children
     |> Seq.flat_map (fun (k, v) ->
         Seq.map (fun l ->
@@ -51,9 +51,9 @@ let find (path : Abs_path.t) (t : 'a t) : 'a option =
         else
           s
       )
-  in
-  aux t
-  |> Seq.map (fun l ->
+   in
+   aux t
+   |> Seq.map (fun l ->
       String_utils.concat_file_names ("/" :: l)
     )
 *)

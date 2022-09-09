@@ -2,6 +2,10 @@ type t = {
   parts : string list;
 }
 
+let equal x y =
+  List.equal String.equal
+    x.parts y.parts
+
 let root = { parts = [] }
 
 let parts t = t.parts

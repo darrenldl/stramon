@@ -1,5 +1,7 @@
 type t
 
+val equal : t -> t -> bool
+
 val root : t
 
 val parts : t -> string list
