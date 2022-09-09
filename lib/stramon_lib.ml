@@ -6,7 +6,17 @@ let process_line (ctx : Ctx.t) ({ pid; text } : Strace_pipe.line) =
   | None -> ()
   | Some blob ->
     match blob.name with
-    | "openat" | "open" -> Printf.printf "pid: %d, %s(%s) = %s\n" pid blob.name blob.arg_text blob.ret
+    | "openat" | "open" -> (
+        match Syscall.syscall_of_blob blob with
+        | None -> print_endline "failed"
+        | Some syscall -> (
+            let open Syscall in
+            match syscall.args with
+            | String path :: _ ->
+              Printf.printf "pid: %d, syscall: %s, path: %S, ret: %s\n" pid syscall.name path blob.ret
+            | _ -> ()
+          )
+      )
     | _ -> ()
 
 let monitor (cmd : string list) : Summary.t =

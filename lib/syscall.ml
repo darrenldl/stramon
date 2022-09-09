@@ -13,10 +13,12 @@ type term =
   | Int of int
   | Pointer of string
   | Struct of (string * term) list
+  | Const of string
+  | Flags of string list
 
 type syscall = {
   name : string;
-  args : term array;
+  args : term list;
   ret : term;
   errno : string option;
   errno_msg : string option;
@@ -27,7 +29,7 @@ module Parsers = struct
   open Parser_components
 
   let name_p =
-    spaces *> non_space_string >>| Fun.id
+    spaces *> non_space_string <* spaces
 
   let blob_ret_p =
     spaces *>
@@ -47,6 +49,25 @@ module Parsers = struct
       <|>
       (return (ret, None, None))
     )
+
+  let term_p : term t =
+    choice [
+      (string "0x" *> non_space_string >>| fun s -> Pointer s);
+      (nat_zero >>| fun n -> Int n);
+      (char '"' *> non_quote_string >>= fun s -> char '"' *>
+                                                 match String_utils.string_of_hex_string s with
+                                                 | None -> fail "invalid hex string"
+                                                 | Some s -> return (String s)
+      );
+      (sep_by1 (char '|') non_space_string >>| fun l -> Flags l);
+      (non_space_string >>| fun s -> Const s);
+    ]
+
+  let args_p : term list t =
+    sep_by_comma term_p
+
+  let ret_p : term t =
+    spaces *> term_p <* spaces
 end
 
 let blob_of_string (str : string) : blob option =
@@ -55,13 +76,13 @@ let blob_of_string (str : string) : blob option =
   let* ret_eq_pos = String_utils.find_char_rev '=' str in
   let* close_paren_pos = String_utils.find_char_rev ~start:ret_eq_pos ')' str in
   match
-    Angstrom.(parse_string ~consume:Consume.Prefix) Parsers.name_p
+    Angstrom.(parse_string ~consume:Consume.All) Parsers.name_p
       (StringLabels.sub ~pos:0 ~len:open_paren_pos str)
   with
   | Error _ -> None
   | Ok name ->
     match
-      Angstrom.(parse_string ~consume:Consume.Prefix) Parsers.blob_ret_p
+      Angstrom.(parse_string ~consume:Consume.All) Parsers.blob_ret_p
         (StringLabels.sub ~pos:(ret_eq_pos + 1) ~len:(str_len - (ret_eq_pos + 1)) str)
     with
     | Error _ -> None
@@ -71,5 +92,15 @@ let blob_of_string (str : string) : blob option =
       in
       Some { name; arg_text; ret; errno; errno_msg }
 
-let syscall_of_blob (blob : blob) : syscall option =
-  None
+let syscall_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : syscall option =
+  match
+    Angstrom.(parse_string ~consume:Consume.All) Parsers.args_p arg_text
+  with
+  | Error _ -> None
+  | Ok args ->
+    match
+      Angstrom.(parse_string ~consume:Consume.All) Parsers.ret_p ret
+    with
+    | Error _ -> None
+    | Ok ret ->
+      Some { name; args; ret; errno; errno_msg }
