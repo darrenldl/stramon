@@ -39,21 +39,22 @@ let read_line (ctx : Ctx.t) (pipe : in_channel) : read_result =
     Angstrom.(parse_string ~consume:Consume.All) Parsers.line_p (input_line pipe)
   with
   | Ok (pid, text, status) -> (
+      let proc_ctx = Ctx.get_proc_ctx ctx ~pid in
       match status with
       | Unfinished -> (
-          Ctx.set_unfinished_line ~pid text ctx;
+          Proc_ctx.set_unfinished_line proc_ctx text;
           Not_ready
         )
       | Resumed -> (
-          match Ctx.get_unfinished_line ~pid ctx with
+          match Proc_ctx.get_unfinished_line proc_ctx with
           | None -> Not_ready
           | Some s -> (
-              Ctx.clear_unfinished_line ~pid ctx;
+              Proc_ctx.clear_unfinished_line proc_ctx;
               Line { pid; text = s ^ text }
             )
         )
       | Complete -> (
-          Ctx.clear_unfinished_line ~pid ctx;
+          Proc_ctx.clear_unfinished_line proc_ctx;
           Line { pid; text }
         )
     )
