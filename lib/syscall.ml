@@ -31,9 +31,19 @@ module Parsers = struct
   let name_p =
     spaces *> non_space_string <* spaces
 
+  let hex_string_p p =
+    p >>= fun s ->
+    match String_utils.string_of_hex_string s with
+    | None -> fail "invalid hex string"
+    | Some s -> return s
+
+  let decoded_p =
+    non_angle_string *> char '<' *> hex_string_p non_angle_string >>= fun s ->
+    char '>' *> return s
+
   let blob_ret_p =
     spaces *>
-    non_space_string >>= fun ret ->
+    (decoded_p <|> non_space_string) >>= fun ret ->
     spaces *>
     (
       (
@@ -52,12 +62,11 @@ module Parsers = struct
 
   let term_p : term t =
     choice [
+      (decoded_p >>= fun s -> return (String s));
       (string "0x" *> non_space_string >>| fun s -> Pointer s);
       (nat_zero >>| fun n -> Int n);
-      (char '"' *> non_quote_string >>= fun s -> char '"' *>
-                                                 match String_utils.string_of_hex_string s with
-                                                 | None -> fail "invalid hex string"
-                                                 | Some s -> return (String s)
+      (char '"' *> hex_string_p non_quote_string >>= fun s ->
+       char '"' *> return (String s)
       );
       (sep_by1 (char '|') non_space_string >>| fun l -> Flags l);
       (non_space_string >>| fun s -> Const s);
