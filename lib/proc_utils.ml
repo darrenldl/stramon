@@ -37,6 +37,7 @@ let exec cmd : int * in_channel * (unit -> unit) =
     ; "-f"
     ; "-o"
     ; pipe_name
+    ; "--decode-fds=path"
     (* ; "-e"
        ; "trace=%file,%process,%net" *)
     ; "--"

@@ -17,19 +17,26 @@ module Parsers = struct
   open Angstrom
   open Parser_components
 
+  let unfinished_str = "<unfinished"
+
+  let resumed_str = "resumed>"
+
   let line_p =
     nat_zero
     >>= fun pid ->
-    non_angle_string >>= fun text ->
-    (choice [
-        (string "<unfinished" *> non_angle_string *> char '>' *>
-         return (text, Unfinished));
-        (char '<' *> non_space_string *> spaces *> non_space_string *> string "resumed>" *>
-         non_angle_string >>= fun text ->
-         return (text, Resumed));
-        (return (text, Complete));
-      ]
-    )
+    spaces *> any_string >>= (fun text ->
+        let pos = CCString.find ~sub:unfinished_str text in
+        if pos > 0 then
+          return (StringLabels.sub ~pos:0 ~len:pos text, Unfinished)
+        else (
+          let pos = CCString.find ~sub:resumed_str text in
+          if pos > 0 then
+            let pos = pos + String.length resumed_str in
+            return (StringLabels.sub ~pos ~len:(String.length text - pos) text, Resumed)
+          else
+            return (text, Complete)
+        )
+      )
     >>| fun (text, status) ->
     (pid, text, status)
 end
