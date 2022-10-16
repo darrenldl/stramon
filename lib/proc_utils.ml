@@ -1,4 +1,4 @@
-let exec cmd : (int * in_channel * (unit -> unit), string) result =
+let exec ~stdin ~stdout ~stderr cmd : (int * in_channel * (unit -> unit), string) result =
   let rec make_pipe () =
     let pipe_name =
       Fmt.str "/tmp/stramon-%d" (Random.int 1_000_000)
@@ -28,7 +28,7 @@ let exec cmd : (int * in_channel * (unit -> unit), string) result =
   in
   try
     let pid =
-      Unix.(create_process "strace" (Array.of_list wrapped_cmd) stdin stdout stderr)
+      Unix.(create_process "strace" (Array.of_list wrapped_cmd)) stdin stdout stderr
     in
     let pipe = open_in_bin pipe_name in
     let cleanup = (fun () ->

@@ -19,8 +19,13 @@ let process_line (ctx : Ctx.t) ({ pid; text } : Strace_pipe.line) =
       )
     | _ -> ()
 
-let monitor (cmd : string list) : ((unit -> Summary.t) * (unit -> unit), string) result =
-  match Proc_utils.exec cmd with
+let monitor
+    ?(stdin = Unix.stdin)
+    ?(stdout = Unix.stdout)
+    ?(stderr = Unix.stderr)
+    (cmd : string list)
+  : ((unit -> Summary.t) * (unit -> unit), string) result =
+  match Proc_utils.exec ~stdin ~stdout ~stderr cmd with
   | Error msg -> Error msg
   | Ok (_pid, strace_pipe, cleanup) -> (
       let ctx = Ctx.make () in
