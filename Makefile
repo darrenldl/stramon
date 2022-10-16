@@ -14,7 +14,7 @@ release-static :
 
 .PHONY: run
 run:
-	dune exec bin/stramon.exe
+	dune exec -- bin/stramon.exe sleep 10
 
 .PHONY: format
 format :

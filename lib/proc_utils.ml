@@ -49,15 +49,22 @@ let exec cmd : int * in_channel * (unit -> unit) =
     Unix.(create_process "strace" (Array.of_list wrapped_cmd) stdin stdout stderr)
   in
   let pipe = open_in_bin pipe_name in
-  let clean_up = (fun () ->
+  let cleanup = (fun () ->
+      (
+        try
+          Unix.kill Sys.sigkill pid
+        with _ -> ()
+      );
       (
         try
           close_in pipe
         with _ -> ()
       );
-      try
-        Sys.remove pipe_name
-      with _ -> ()
+      (
+        try
+          Sys.remove pipe_name
+        with _ -> ()
+      );
     )
   in
-  (pid, pipe, clean_up)
+  (pid, pipe, cleanup)

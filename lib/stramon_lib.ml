@@ -19,9 +19,9 @@ let process_line (ctx : Ctx.t) ({ pid; text } : Strace_pipe.line) =
       )
     | _ -> ()
 
-let monitor (cmd : string list) : Summary.t =
+let monitor (cmd : string list) : (unit -> Summary.t) * (unit -> unit) =
   let ctx = Ctx.make () in
-  let (_pid, strace_pipe, clean_up) = Proc_utils.exec cmd in
+  let (_pid, strace_pipe, cleanup) = Proc_utils.exec cmd in
   let rec aux () =
     let open Strace_pipe in
     match read_line ctx strace_pipe with
@@ -30,9 +30,6 @@ let monitor (cmd : string list) : Summary.t =
         aux ()
       )
     | Not_ready -> aux ()
-    | Eof -> (
-        clean_up ()
-      )
+    | Eof -> (Ctx.summary ctx)
   in
-  aux ();
-  Ctx.summary ctx
+  (aux, cleanup)
