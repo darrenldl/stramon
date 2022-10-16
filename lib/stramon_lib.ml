@@ -19,17 +19,20 @@ let process_line (ctx : Ctx.t) ({ pid; text } : Strace_pipe.line) =
       )
     | _ -> ()
 
-let monitor (cmd : string list) : (unit -> Summary.t) * (unit -> unit) =
-  let ctx = Ctx.make () in
-  let (_pid, strace_pipe, cleanup) = Proc_utils.exec cmd in
-  let rec aux () =
-    let open Strace_pipe in
-    match read_line ctx strace_pipe with
-    | Line line -> (
-        process_line ctx line;
-        aux ()
-      )
-    | Not_ready -> aux ()
-    | Eof -> (Ctx.summary ctx)
-  in
-  (aux, cleanup)
+let monitor (cmd : string list) : ((unit -> Summary.t) * (unit -> unit), string) result =
+  match Proc_utils.exec cmd with
+  | Error msg -> Error msg
+  | Ok (_pid, strace_pipe, cleanup) -> (
+      let ctx = Ctx.make () in
+      let rec aux () =
+        let open Strace_pipe in
+        match read_line ctx strace_pipe with
+        | Line line -> (
+            process_line ctx line;
+            aux ()
+          )
+        | Not_ready -> aux ()
+        | Eof -> (Ctx.summary ctx)
+      in
+      Ok (aux, cleanup)
+    )

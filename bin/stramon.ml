@@ -14,17 +14,15 @@ let () =
   Sys.catch_break true;
   Arg.parse speclist add_to_command "";
   let command = List.rev !command in
-  try (
-    let run, cleanup =
-      Stramon_lib.monitor command
-    in
-    try
-      let summary = run () in
-      ()
-    with
-    | Sys.Break -> cleanup ()
-  ) with
-  | Unix.Unix_error _ -> (
-      Printf.printf "Error: Failed to create strace process\n";
+  match Stramon_lib.monitor command with
+  | Error msg -> (
+      Printf.printf "Error: %s\n" msg;
       exit 1
+    )
+  | Ok (run, cleanup) -> (
+      try
+        let summary = run () in
+        ()
+      with
+      | Sys.Break -> cleanup ()
     )

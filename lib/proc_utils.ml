@@ -1,23 +1,4 @@
-(* tmpe process_status = Unix.process_status
-
-   type exec_result = {
-   cmd : string;
-   status : process_status;
-   }
-
-   let pp_process_status (formatter : Format.formatter) s =
-   let open Unix in
-   match s with
-   | WEXITED i -> Fmt.pf formatter "exited %d" i
-   | WSIGNALED i -> Fmt.pf formatter "signaled %d" i
-   | WSTOPPED i -> Fmt.pf formatter "stopped %d" i
-
-   let pp_exec_result (formatter : Format.formatter) res =
-   Fmt.pf "%s %a"
-   res.cmd pp_process_status res.status
-*)
-
-let exec cmd : int * in_channel * (unit -> unit) =
+let exec cmd : (int * in_channel * (unit -> unit), string) result =
   let rec make_pipe () =
     let pipe_name =
       Fmt.str "/tmp/stramon-%d" (Random.int 1_000_000)
@@ -45,26 +26,30 @@ let exec cmd : int * in_channel * (unit -> unit) =
     @
     cmd
   in
-  let pid =
-    Unix.(create_process "strace" (Array.of_list wrapped_cmd) stdin stdout stderr)
-  in
-  let pipe = open_in_bin pipe_name in
-  let cleanup = (fun () ->
-      (
-        try
-          Unix.kill Sys.sigkill pid
-        with _ -> ()
-      );
-      (
-        try
-          close_in pipe
-        with _ -> ()
-      );
-      (
-        try
-          Sys.remove pipe_name
-        with _ -> ()
-      );
-    )
-  in
-  (pid, pipe, cleanup)
+  try
+    let pid =
+      Unix.(create_process "strace" (Array.of_list wrapped_cmd) stdin stdout stderr)
+    in
+    let pipe = open_in_bin pipe_name in
+    let cleanup = (fun () ->
+        (
+          try
+            Unix.kill Sys.sigkill pid
+          with _ -> ()
+        );
+        (
+          try
+            close_in pipe
+          with _ -> ()
+        );
+        (
+          try
+            Sys.remove pipe_name
+          with _ -> ()
+        );
+      )
+    in
+    Ok (pid, pipe, cleanup)
+  with
+  | Unix.Unix_error _ ->
+    Error "Failed to create strace process"
