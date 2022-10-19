@@ -61,17 +61,19 @@ let monitor_custom
       Ok { run; cleanup }
     )
 
-let summary_handlers : (string * Summary.t handler) list =
+module Summary_handlers = struct
   let open_f (summary : Summary.t) pid (syscall : Syscall.t) =
-    match syscall.args with
-    | String path :: _ ->
+    match syscall.args.(0) with
+    | String path ->
       Printf.printf "pid: %d, syscall: %s, path: %S\n" pid syscall.name path;
       summary
     | _ -> summary
-  in
-  [ ("openat", open_f)
-  ; ("open", open_f)
-  ]
+
+  let list : (string * Summary.t handler) list =
+    [ ("openat", open_f)
+    ; ("open", open_f)
+    ]
+end
 
 let monitor
     ?stdin
@@ -80,4 +82,4 @@ let monitor
     cmd
   : (Summary.t monitor_handle, string) result =
   monitor_custom ?stdin ?stdout ?stderr
-    ~handlers:summary_handlers ~init_data:Summary.empty cmd
+    ~handlers:Summary_handlers.list ~init_data:Summary.empty cmd

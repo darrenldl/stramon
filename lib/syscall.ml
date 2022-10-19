@@ -18,7 +18,7 @@ type term =
 
 type t = {
   name : string;
-  args : term list;
+  args : term array;
   ret : term;
   errno : string option;
   errno_msg : string option;
@@ -112,5 +112,5 @@ let of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : t option =
     with
     | Error _ -> None
     | Ok ret ->
-      Some { name; args; ret; errno; errno_msg }
+      Some { name; args = Array.of_list args; ret; errno; errno_msg }
 
