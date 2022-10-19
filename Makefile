@@ -14,7 +14,7 @@ release-static :
 
 .PHONY: run
 run:
-	dune exec -- bin/stramon.exe -f -o abcd/defg/test.json ls
+	dune exec -- bin/stramon.exe -f -o test.json ls
 
 .PHONY: format
 format :
