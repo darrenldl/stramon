@@ -13,14 +13,14 @@ type 'a monitor_handle = {
 
 val init : unit -> unit
 
-val monitor :
+val monitor_summary :
   ?stdin:Unix.file_descr ->
   ?stdout:Unix.file_descr -> 
   ?stderr:Unix.file_descr -> 
   string list ->
   (Summary.t monitor_handle, string) result
 
-val monitor_custom :
+val monitor :
   ?stdin:Unix.file_descr ->
   ?stdout:Unix.file_descr -> 
   ?stderr:Unix.file_descr -> 

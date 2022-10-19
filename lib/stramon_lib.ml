@@ -31,7 +31,7 @@ let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : 
           )
     )
 
-let monitor_custom
+let monitor
     (type a)
     ?(stdin = Unix.stdin)
     ?(stdout = Unix.stdout)
@@ -75,7 +75,7 @@ module Summary_handlers = struct
     ]
 end
 
-let monitor
+let monitor_summary
     ?stdin
     ?stdout
     ?stderr
