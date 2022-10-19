@@ -1,3 +1,9 @@
+module Path_access = Path_access
+
+module Link_access = Link_access
+
+module Summary = Summary
+
 let init () =
   Random.self_init ()
 
@@ -31,7 +37,7 @@ let monitor_custom
     ?(stdout = Unix.stdout)
     ?(stderr = Unix.stderr)
     ~(handlers : (string * a handler) list)
-    (init_data : a)
+    ~(init_data : a)
     (cmd : string list)
   : (a monitor_handle, string) result =
   match Proc_utils.exec ~stdin ~stdout ~stderr cmd with
@@ -74,4 +80,4 @@ let monitor
     cmd
   : (Summary.t monitor_handle, string) result =
   monitor_custom ?stdin ?stdout ?stderr
-    ~handlers:summary_handlers Summary.empty cmd
+    ~handlers:summary_handlers ~init_data:Summary.empty cmd
