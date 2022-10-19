@@ -1,15 +1,17 @@
-type t = {
+type 'a t = {
   proc_ctxs : (int, Proc_ctx.t) Hashtbl.t;
-  summary : Summary.t ref;
+  mutable data : 'a;
 }
 
-let make () : t =
+let make (data : 'a) : 'a t =
   {
     proc_ctxs = Hashtbl.create 100;
-    summary = ref Summary.empty;
+    data;
   }
 
-let summary t = !(t.summary)
+let get_data t = t.data
+
+let set_data t x = t.data <- x
 
 let get_proc_ctx t ~pid =
   match Hashtbl.find_opt t.proc_ctxs pid with

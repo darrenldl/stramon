@@ -41,7 +41,7 @@ module Parsers = struct
     (pid, text, status)
 end
 
-let read_line (ctx : Ctx.t) (pipe : in_channel) : read_result =
+let read_line (ctx : 'a Ctx.t) (pipe : in_channel) : read_result =
   match
     Angstrom.(parse_string ~consume:Consume.All) Parsers.line_p (input_line pipe)
   with

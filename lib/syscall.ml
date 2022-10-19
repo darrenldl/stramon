@@ -16,7 +16,7 @@ type term =
   | Const of string
   | Flags of string list
 
-type syscall = {
+type t = {
   name : string;
   args : term list;
   ret : term;
@@ -101,7 +101,7 @@ let blob_of_string (str : string) : blob option =
       in
       Some { name; arg_text; ret; errno; errno_msg }
 
-let syscall_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : syscall option =
+let of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : t option =
   match
     Angstrom.(parse_string ~consume:Consume.All) Parsers.args_p arg_text
   with
@@ -113,3 +113,4 @@ let syscall_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : syscall
     | Error _ -> None
     | Ok ret ->
       Some { name; args; ret; errno; errno_msg }
+

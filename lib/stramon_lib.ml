@@ -1,43 +1,77 @@
 let init () =
   Random.self_init ()
 
-let process_line (ctx : Ctx.t) ({ pid; text } : Strace_pipe.line) =
+type 'a handler = 'a -> int -> Syscall.t -> 'a
+
+type 'a handler_db = (string, 'a handler) Hashtbl.t
+
+type 'a monitor_handle = {
+  run : unit -> 'a;
+  cleanup : unit -> unit;
+}
+
+let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : Strace_pipe.line) =
   match Syscall.blob_of_string text with
   | None -> ()
-  | Some blob ->
-    match blob.name with
-    | "openat" | "open" -> (
-        match Syscall.syscall_of_blob blob with
-        | None -> print_endline "failed"
+  | Some blob -> (
+      match Hashtbl.find_opt handler_db blob.name with
+      | None -> ()
+      | Some f ->
+        match Syscall.of_blob blob with
+        | None -> ()
         | Some syscall -> (
-            let open Syscall in
-            match syscall.args with
-            | String path :: _ ->
-              Printf.printf "pid: %d, syscall: %s, path: %S, ret: %s\n" pid syscall.name path blob.ret
-            | _ -> ()
+            let data = f (Ctx.get_data ctx) pid syscall in
+            Ctx.set_data ctx data
           )
-      )
-    | _ -> ()
+    )
 
-let monitor
+let monitor_custom
+    (type a)
     ?(stdin = Unix.stdin)
     ?(stdout = Unix.stdout)
     ?(stderr = Unix.stderr)
+    ~(handlers : (string * a handler) list)
+    (init_data : a)
     (cmd : string list)
-  : ((unit -> Summary.t) * (unit -> unit), string) result =
+  : (a monitor_handle, string) result =
   match Proc_utils.exec ~stdin ~stdout ~stderr cmd with
   | Error msg -> Error msg
   | Ok (_pid, strace_pipe, cleanup) -> (
-      let ctx = Ctx.make () in
-      let rec aux () =
+      let ctx = Ctx.make init_data in
+      let handler_db : a handler_db =
+        List.to_seq handlers
+        |> Hashtbl.of_seq
+      in
+      let rec run () =
         let open Strace_pipe in
         match read_line ctx strace_pipe with
         | Line line -> (
-            process_line ctx line;
-            aux ()
+            process_line handler_db ctx line;
+            run ()
           )
-        | Not_ready -> aux ()
-        | Eof -> (Ctx.summary ctx)
+        | Not_ready -> run ()
+        | Eof -> (Ctx.get_data ctx)
       in
-      Ok (aux, cleanup)
+      Ok { run; cleanup }
     )
+
+let summary_handlers : (string * Summary.t handler) list =
+  let open_f (summary : Summary.t) pid (syscall : Syscall.t) =
+    match syscall.args with
+    | String path :: _ ->
+      Printf.printf "pid: %d, syscall: %s, path: %S\n" pid syscall.name path;
+      summary
+    | _ -> summary
+  in
+  [ ("openat", open_f)
+  ; ("open", open_f)
+  ]
+
+let monitor
+    ?stdin
+    ?stdout
+    ?stderr
+    cmd
+  : (Summary.t monitor_handle, string) result =
+  monitor_custom ?stdin ?stdout ?stderr
+    ~handlers:summary_handlers Summary.empty cmd

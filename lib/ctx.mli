@@ -1,9 +1,11 @@
-type t
+type 'a t
 
-val make : unit -> t
+val make : 'a -> 'a t
 
-val summary : t -> Summary.t
+val get_data : 'a t -> 'a
 
-val get_proc_ctx : t -> pid:int -> Proc_ctx.t
+val set_data : 'a t -> 'a -> unit
 
-val remove_proc_ctx : t -> pid:int -> unit
+val get_proc_ctx : 'a t -> pid:int -> Proc_ctx.t
+
+val remove_proc_ctx : 'a t -> pid:int -> unit
