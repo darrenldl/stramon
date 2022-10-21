@@ -36,6 +36,11 @@ let find (path : Abs_path.t) (t : 'a t) : 'a option =
   in
   aux t (Abs_path.parts path)
 
+let find_exn path t =
+  match find path t with
+  | None -> invalid_arg "find_exn: Path not exist"
+  | Some x -> x
+
 (* let to_seq (t : t) : string Seq.t =
    let rec aux (t : t) : string list Seq.t =
     String_map.to_seq t.children
