@@ -12,7 +12,7 @@ type 'a handler = 'a -> int -> Syscall.t -> 'a
 type 'a handler_db = (string, 'a handler) Hashtbl.t
 
 type 'a monitor_handle = {
-  run : unit -> 'a;
+  pipe_run : unit -> 'a;
   cleanup : unit -> unit;
 }
 
@@ -58,7 +58,7 @@ let monitor
         | Not_ready -> run ()
         | Eof -> (Ctx.get_data ctx)
       in
-      Ok { run; cleanup }
+      Ok { pipe_run = run; cleanup }
     )
 
 module Summary_handlers = struct

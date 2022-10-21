@@ -7,7 +7,7 @@ module Summary = Summary
 type 'a handler = 'a -> int -> Syscall.t -> 'a
 
 type 'a monitor_handle = {
-  run : unit -> 'a;
+  pipe_run : unit -> 'a;
   cleanup : unit -> unit;
 }
 
