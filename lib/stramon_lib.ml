@@ -63,9 +63,10 @@ let monitor
 
 module Summary_handlers = struct
   let open_f (summary : Summary.t) pid (syscall : Syscall.t) =
-    match syscall.args.(0) with
+    Fmt.pr "@[<v>%a@,@]" Syscall.pp_term syscall.ret;
+    match syscall.ret with
     | String path ->
-      Printf.printf "pid: %d, syscall: %s, path: %S\n" pid syscall.name path;
+      Printf.printf "pid: %d, syscall: %s, ret: %S\n" pid syscall.name path;
       summary
     | _ -> summary
 
@@ -81,5 +82,5 @@ let monitor_summary
     ?stderr
     cmd
   : (Summary.t monitor_handle, string) result =
-  monitor_custom ?stdin ?stdout ?stderr
+  monitor ?stdin ?stdout ?stderr
     ~handlers:Summary_handlers.list ~init_data:Summary.empty cmd

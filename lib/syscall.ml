@@ -43,7 +43,7 @@ module Parsers = struct
 
   let blob_ret_p =
     spaces *>
-    (decoded_p <|> non_space_string) >>= fun ret ->
+    non_space_string >>= fun ret ->
     spaces *>
     (
       (
@@ -68,8 +68,11 @@ module Parsers = struct
       (char '"' *> hex_string_p non_quote_string >>= fun s ->
        char '"' *> return (String s)
       );
-      (sep_by1 (char '|') non_space_string >>| fun l -> Flags l);
-      (non_space_string >>| fun s -> Const s);
+      (sep_by1 (char '|') non_space_string >>| fun l ->
+       match l with
+       | [x] -> Const x
+       | l -> Flags l
+      );
     ]
 
   let args_p : term list t =
@@ -114,3 +117,25 @@ let of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : t option =
     | Ok ret ->
       Some { name; args = Array.of_list args; ret; errno; errno_msg }
 
+let pp_term (formatter : Format.formatter) (x : term) =
+  let rec aux formatter x =
+    match x with
+    | String s -> Fmt.pf formatter "%S" s
+    | Int x -> Fmt.pf formatter "%d" x
+    | Pointer s -> Fmt.pf formatter "%s" s
+    | Struct l ->
+      Fmt.pf formatter "{%a}"
+        Fmt.(list (fun formatter (s, x) ->
+            Fmt.pf formatter "%s = %a;" s aux x
+          ))
+        l
+    | Const s ->
+      Fmt.pf formatter "%s" s
+    | Flags l ->
+      Fmt.pf formatter "%a"
+        Fmt.(list
+               ~sep:(fun formatter () -> Fmt.pf formatter "|")
+               string)
+        l
+  in
+  aux formatter x
