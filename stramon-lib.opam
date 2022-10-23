@@ -12,7 +12,6 @@ bug-reports: "https://github.com/darrenldl/stramon/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.4"}
-  "stramon-lib"
   "odoc" {with-doc}
 ]
 build: [

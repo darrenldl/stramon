@@ -5,7 +5,7 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github darrenldl/stramon))
 
 (authors "Stramon developers")
 
@@ -16,10 +16,18 @@
 (documentation https://url/to/documentation)
 
 (package
- (name stramon)
+ (name stramon-lib)
  (synopsis "A short synopsis")
  (description "A longer description")
  (depends ocaml dune)
+ (tags
+  (topics "to describe" your project)))
+
+(package
+ (name stramon)
+ (synopsis "A short synopsis")
+ (description "A longer description")
+ (depends ocaml dune stramon-lib)
  (tags
   (topics "to describe" your project)))
 
