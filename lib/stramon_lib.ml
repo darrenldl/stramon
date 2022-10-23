@@ -1,8 +1,10 @@
-module Path_access = Path_access
+module Abs_path = Abs_path
 
-module Link_access = Link_access
+module Path_trie = Path_trie
 
-module Summary = Summary
+module Path_trie_set = Path_trie_set
+
+module Syscall = Syscall
 
 let init () =
   Random.self_init ()
@@ -60,27 +62,3 @@ let monitor
       in
       Ok { pipe_run = run; cleanup }
     )
-
-module Summary_handlers = struct
-  let open_f (summary : Summary.t) pid (syscall : Syscall.t) =
-    Fmt.pr "@[<v>%a@,@]" Syscall.pp_term syscall.ret;
-    match syscall.ret with
-    | String path ->
-      Printf.printf "pid: %d, syscall: %s, ret: %S\n" pid syscall.name path;
-      summary
-    | _ -> summary
-
-  let list : (string * Summary.t handler) list =
-    [ ("openat", open_f)
-    ; ("open", open_f)
-    ]
-end
-
-let monitor_summary
-    ?stdin
-    ?stdout
-    ?stderr
-    cmd
-  : (Summary.t monitor_handle, string) result =
-  monitor ?stdin ?stdout ?stderr
-    ~handlers:Summary_handlers.list ~init_data:Summary.empty cmd

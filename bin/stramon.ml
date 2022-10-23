@@ -42,7 +42,7 @@ let () =
           exit 1
         )
     );
-    match Stramon_lib.monitor_summary command with
+    match Stramon_lib.monitor ~handlers:[] ~init_data:() command with
     | Error msg -> (
         Printf.printf "Error: %s\n" msg;
         exit 2

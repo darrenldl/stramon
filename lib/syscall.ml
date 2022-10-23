@@ -24,6 +24,16 @@ type t = {
   errno_msg : string option;
 }
 
+let name (t : t) = t.name
+
+let args (t : t) = t.args
+
+let ret (t : t) = t.ret
+
+let errno (t : t) = t.errno
+
+let errno_msg (t : t) = t.errno_msg
+
 module Parsers = struct
   open Angstrom
   open Parser_components

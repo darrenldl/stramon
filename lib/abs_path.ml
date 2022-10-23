@@ -27,7 +27,7 @@ let of_parts (parts : string list) : t option =
   in
   aux [] parts
 
-let of_string ~(cwd : t) (path : string) : t option =
+let of_string ?(cwd = root) (path : string) : t option =
   let parts = String_utils.escaping_split ~on:'/' path in
   let parts =
     if path.[0] = '/' then parts
