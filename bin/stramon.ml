@@ -47,11 +47,6 @@ let () =
         Printf.printf "Error: %s\n" msg;
         exit 2
       )
-    | Ok Stramon_lib.{ pipe_run; cleanup } -> (
-        try
-          let summary = pipe_run () in
-          ()
-        with
-        | Sys.Break -> cleanup ()
+    | Ok _ -> (
       )
   )

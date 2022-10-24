@@ -62,12 +62,15 @@ end
 
 type 'a handler = 'a -> int -> Syscall.t -> 'a
 
-type 'a monitor_handle = {
-  pipe_run : unit -> 'a;
-  cleanup : unit -> unit;
-}
-
 val init : unit -> unit
+
+module Monitor_result : sig
+  type 'a t
+
+  val data : 'a t -> 'a
+
+  val exn : 'a t -> exn option
+end
 
 val monitor :
   ?stdin:Unix.file_descr ->
@@ -76,4 +79,4 @@ val monitor :
   handlers:(string * 'a handler) list ->
   init_data:'a ->
   string list ->
-  ('a monitor_handle, string) result
+  ('a Monitor_result.t, string) result

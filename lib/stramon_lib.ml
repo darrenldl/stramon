@@ -13,11 +13,6 @@ type 'a handler = 'a -> int -> Syscall.t -> 'a
 
 type 'a handler_db = (string, 'a handler) Hashtbl.t
 
-type 'a monitor_handle = {
-  pipe_run : unit -> 'a;
-  cleanup : unit -> unit;
-}
-
 let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : Strace_pipe.line) =
   match Syscall.blob_of_string text with
   | None -> ()
@@ -33,6 +28,17 @@ let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : 
           )
     )
 
+module Monitor_result = struct
+  type 'a t = {
+    data : 'a;
+    exn : exn option;
+  }
+
+  let data t = t.data
+
+  let exn t = t.exn
+end
+
 let monitor
     (type a)
     ?(stdin = Unix.stdin)
@@ -41,7 +47,7 @@ let monitor
     ~(handlers : (string * a handler) list)
     ~(init_data : a)
     (cmd : string list)
-  : (a monitor_handle, string) result =
+  : (a Monitor_result.t, string) result =
   match Proc_utils.exec ~stdin ~stdout ~stderr cmd with
   | Error msg -> Error msg
   | Ok (_pid, strace_pipe, cleanup) -> (
@@ -58,7 +64,23 @@ let monitor
             run ()
           )
         | Not_ready -> run ()
-        | Eof -> (Ctx.get_data ctx)
+        | Eof -> ()
       in
-      Ok { pipe_run = run; cleanup }
+      let exn' =
+        (
+          try
+            run ();
+            cleanup ();
+            None
+          with
+          | e -> (
+              cleanup ();
+              Some e
+            )
+        )
+      in
+      Ok Monitor_result.{
+          data = Ctx.get_data ctx;
+          exn = exn';
+        }
     )
