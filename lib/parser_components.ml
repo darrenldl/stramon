@@ -54,13 +54,23 @@ let optional_char target =
           return ()
     )
 
-let ident_string ~(reserved_words : string list) : string t =
-  let reserved_words = List.map String.lowercase_ascii reserved_words in
-  alpha_string
-  >>= fun s ->
-  if List.mem (String.lowercase_ascii s) reserved_words then
+(* let ident_string ~(reserved_words : string list) : string t =
+   let reserved_words = List.map String.lowercase_ascii reserved_words in
+   alpha_string
+   >>= fun s ->
+   if List.mem (String.lowercase_ascii s) reserved_words then
     fail (Printf.sprintf "\"%s\" is a reserved word" s)
-  else return s
+   else return s *)
+
+let ident_string : string t =
+  take_while (fun c ->
+      match c with
+      | 'A'..'Z' -> true
+      | 'a'..'z' -> true
+      | '0'..'9' -> true
+      | '_' -> true
+      | _ -> false
+    )
 
 let skip_non_num_string ~end_markers =
   skip_while (function

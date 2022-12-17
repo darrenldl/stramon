@@ -37,30 +37,33 @@ module Path_trie_set : sig
 end
 
 module Syscall : sig
-  type t
+type _open = {
+  path : string;
+  flags : string list;
+  mode : string list;
+}
 
-  type term =
-    | String of string
-    | Int of int
-    | Pointer of string
-    | Struct of (string * term) list
-    | Const of string
-    | Flags of string list
+type _openat = {
+  relative_to : string;
+  path : string;
+  flags : string list;
+  mode : string list;
+}
 
-  val name : t -> string
+type _read = {
+  path : string;
+  byte_count_requested : int;
+  byte_count_read : int;
+  errno : string option;
+  errno_msg : string option;
+}
 
-  val args : t -> term array
-
-  val ret : t -> term
-
-  val errno : t -> string option
-
-  val errno_msg : t -> string option
-
-  val pp_term : Format.formatter -> term -> unit
+type 'a handler = [
+  | `_open of 'a -> int -> _open -> 'a
+  | `_openat of 'a -> int -> _openat -> 'a
+  | `_read of 'a -> int -> _read -> 'a
+]
 end
-
-type 'a handler = 'a -> int -> Syscall.t -> 'a
 
 val init : unit -> unit
 
@@ -76,7 +79,7 @@ val monitor :
   ?stdin:Unix.file_descr ->
   ?stdout:Unix.file_descr -> 
   ?stderr:Unix.file_descr -> 
-  handlers:(string * 'a handler) list ->
+  handlers:'a Syscall.handler list ->
   init_data:'a ->
   string list ->
   ('a Monitor_result.t, string) result

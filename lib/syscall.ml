@@ -15,24 +15,15 @@ type term =
   | Struct of (string * term) list
   | Const of string
   | Flags of string list
+  | Array of term list
 
-type t = {
+type base = {
   name : string;
-  args : term array;
+  args : term list;
   ret : term;
   errno : string option;
   errno_msg : string option;
 }
-
-let name (t : t) = t.name
-
-let args (t : t) = t.args
-
-let ret (t : t) = t.ret
-
-let errno (t : t) = t.errno
-
-let errno_msg (t : t) = t.errno_msg
 
 module Parsers = struct
   open Angstrom
@@ -71,19 +62,33 @@ module Parsers = struct
     )
 
   let term_p : term t =
-    choice [
-      (decoded_p >>= fun s -> return (String s));
-      (string "0x" *> non_space_string >>| fun s -> Pointer s);
-      (nat_zero >>| fun n -> Int n);
-      (char '"' *> hex_string_p non_quote_string >>= fun s ->
-       char '"' *> return (String s)
-      );
-      (sep_by1 (char '|') non_space_string >>| fun l ->
-       match l with
-       | [x] -> Const x
-       | l -> Flags l
-      );
-    ]
+    fix (fun p ->
+        choice [
+          (decoded_p >>= fun s -> return (String s));
+          (string "0x" *> non_space_string >>| fun s -> Pointer s);
+          (nat_zero >>| fun n -> Int n);
+          (char '"' *> hex_string_p non_quote_string >>= fun s ->
+           char '"' *> return (String s)
+          );
+          (sep_by1 (char '|') non_space_string >>| fun l ->
+           match l with
+           | [x] -> Const x
+           | l -> Flags l
+          );
+          (char '{' *> spaces *>
+           sep_by_comma (ident_string >>= fun k ->
+                         spaces *> char '=' *> spaces *>
+                         p >>| fun v -> (k, v)) >>= fun l ->
+           spaces *> char '}' *>
+           return (Struct l)
+          );
+          (char '[' *>
+           sep_by_comma p >>= fun l ->
+           char ']' *>
+           return (Array l)
+          );
+        ]
+      )
 
   let args_p : term list t =
     sep_by_comma term_p
@@ -114,7 +119,7 @@ let blob_of_string (str : string) : blob option =
       in
       Some { name; arg_text; ret; errno; errno_msg }
 
-let of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : t option =
+let base_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : base option =
   match
     Angstrom.(parse_string ~consume:Consume.All) Parsers.args_p arg_text
   with
@@ -125,7 +130,7 @@ let of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : t option =
     with
     | Error _ -> None
     | Ok ret ->
-      Some { name; args = Array.of_list args; ret; errno; errno_msg }
+      Some { name; args; ret; errno; errno_msg }
 
 let pp_term (formatter : Format.formatter) (x : term) =
   let rec aux formatter x =
@@ -136,7 +141,7 @@ let pp_term (formatter : Format.formatter) (x : term) =
     | Struct l ->
       Fmt.pf formatter "{%a}"
         Fmt.(list (fun formatter (s, x) ->
-            Fmt.pf formatter "%s = %a;" s aux x
+            Fmt.pf formatter "%s=%a," s aux x
           ))
         l
     | Const s ->
@@ -147,5 +152,81 @@ let pp_term (formatter : Format.formatter) (x : term) =
                ~sep:(fun formatter () -> Fmt.pf formatter "|")
                string)
         l
+    | Array l ->
+      Fmt.pf formatter "{%a}"
+        Fmt.(list aux)
+        l
   in
   aux formatter x
+
+type _open = {
+  path : string;
+  flags : string list;
+  mode : string list;
+}
+
+let _open_of_base (base : base) : _open option =
+  match base.args with
+  | [ String path; Flags flags ] -> Some { path; flags; mode = [] }
+  | [ String path; Flags flags; Flags mode ] -> Some { path; flags; mode }
+  | _ -> None
+
+type _openat = {
+  relative_to : string;
+  path : string;
+  flags : string list;
+  mode : string list;
+}
+
+let _openat_of_base (base : base) : _openat option =
+  match base.args with
+  | [ String relative_to; String path; Flags flags ] ->
+    Some { relative_to; path; flags; mode = [] }
+  | [ String relative_to; String path; Flags flags; Flags mode ] ->
+    Some { relative_to; path; flags; mode }
+  | _ -> None
+
+type _read = {
+  path : string;
+  byte_count_requested : int;
+  byte_count_read : int;
+  errno : string option;
+  errno_msg : string option;
+}
+
+let _read_of_base (base : base) : _read option =
+  let errno = base.errno in
+  let errno_msg = base.errno_msg in
+  match base.ret with
+  | Int byte_count_read -> (
+      match base.args with
+      | [ String path; _; Int byte_count_requested ] ->
+        Some { path; byte_count_requested; byte_count_read; errno; errno_msg }
+      | _ -> None
+    )
+  | _ -> None
+
+type 'a handler = [
+  | `_open of 'a -> int -> _open -> 'a
+  | `_openat of 'a -> int -> _openat -> 'a
+  | `_read of 'a -> int -> _read -> 'a
+]
+
+type 'a base_handler = 'a -> int -> base -> 'a option
+
+let base_handler_of_handler (f : 'a handler) : string * 'a base_handler =
+  match f with
+  | `_open f -> ("open", (fun ctx pid base ->
+      let+ x = _open_of_base base in
+      f ctx pid x
+    ))
+  | `_openat f -> ("openat",
+                   (fun ctx pid base ->
+                      let+ x = _openat_of_base base in
+                      f ctx pid x
+                   ))
+  | `_read f -> ("read",
+                 (fun ctx pid base ->
+                    let+ x = _read_of_base base in
+                    f ctx pid x
+                 ))

@@ -6,12 +6,10 @@ module Path_trie_set = Path_trie_set
 
 module Syscall = Syscall
 
+type 'a handler_db = (string, 'a Syscall.base_handler) Hashtbl.t
+
 let init () =
   Random.self_init ()
-
-type 'a handler = 'a -> int -> Syscall.t -> 'a
-
-type 'a handler_db = (string, 'a handler) Hashtbl.t
 
 let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : Strace_pipe.line) =
   match Syscall.blob_of_string text with
@@ -20,11 +18,13 @@ let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : 
       match Hashtbl.find_opt handler_db blob.name with
       | None -> ()
       | Some f ->
-        match Syscall.of_blob blob with
+        match Syscall.base_of_blob blob with
         | None -> ()
         | Some syscall -> (
-            let data = f (Ctx.get_data ctx) pid syscall in
-            Ctx.set_data ctx data
+            match f (Ctx.get_data ctx) pid syscall with
+            | None -> ()
+            | Some data ->
+              Ctx.set_data ctx data
           )
     )
 
@@ -44,7 +44,7 @@ let monitor
     ?(stdin = Unix.stdin)
     ?(stdout = Unix.stdout)
     ?(stderr = Unix.stderr)
-    ~(handlers : (string * a handler) list)
+    ~(handlers : a Syscall.handler list)
     ~(init_data : a)
     (cmd : string list)
   : (a Monitor_result.t, string) result =
@@ -54,6 +54,7 @@ let monitor
       let ctx = Ctx.make init_data in
       let handler_db : a handler_db =
         List.to_seq handlers
+        |> Seq.map Syscall.base_handler_of_handler
         |> Hashtbl.of_seq
       in
       let rec run () =
