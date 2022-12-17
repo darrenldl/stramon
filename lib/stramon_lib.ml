@@ -15,6 +15,8 @@ let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : 
   match Syscall.blob_of_string text with
   | None -> ()
   | Some blob -> (
+      let stats = Ctx.get_stats ctx in
+      Ctx.set_stats ctx (Stats.record_syscall blob.name stats);
       match Hashtbl.find_opt handler_db blob.name with
       | None -> ()
       | Some f ->
@@ -31,10 +33,13 @@ let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : 
 module Monitor_result = struct
   type 'a t = {
     data : 'a;
+    stats : Stats.t;
     exn : exn option;
   }
 
   let data t = t.data
+
+  let stats t = t.stats
 
   let exn t = t.exn
 end
@@ -82,6 +87,7 @@ let monitor
       in
       Ok Monitor_result.{
           data = Ctx.get_data ctx;
+          stats = Ctx.get_stats ctx;
           exn = exn';
         }
     )
