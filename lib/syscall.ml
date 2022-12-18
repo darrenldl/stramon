@@ -216,10 +216,11 @@ type 'a base_handler = 'a -> int -> base -> 'a option
 
 let base_handler_of_handler (f : 'a handler) : string * 'a base_handler =
   match f with
-  | `_open f -> ("open", (fun ctx pid base ->
-      let+ x = _open_of_base base in
-      f ctx pid x
-    ))
+  | `_open f -> ("open",
+                 (fun ctx pid base ->
+                    let+ x = _open_of_base base in
+                    f ctx pid x
+                 ))
   | `_openat f -> ("openat",
                    (fun ctx pid base ->
                       let+ x = _openat_of_base base in

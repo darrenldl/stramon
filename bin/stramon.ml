@@ -47,6 +47,11 @@ let () =
         Printf.printf "Error: %s\n" msg;
         exit 2
       )
-    | Ok _ -> (
+    | Ok res -> (
+        let stats = Stramon_lib.Monitor_result.stats res in
+        Stramon_lib.Stats.syscall_count_seq stats
+        |> Seq.iter (fun (name, count) ->
+            Printf.printf "%s: %d\n" name count;
+          )
       )
   )

@@ -1,0 +1,11 @@
+(test
+ (name main)
+ (libraries stramon-lib
+            qcheck
+            qcheck-alcotest
+            alcotest
+            seq
+            containers
+            fmt
+            )
+ )
