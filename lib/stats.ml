@@ -12,4 +12,10 @@ let record_syscall (name : string) (t : t) : t =
     | None -> String_map.add name 1 t.syscall_count
     | Some n -> String_map.add name (n + 1) t.syscall_count
   in
-  { t with syscall_count }
+  { syscall_count }
+
+let syscall_count t =
+  String_map.to_list t.syscall_count
+
+let syscall_count_seq t =
+  String_map.to_seq t.syscall_count

@@ -6,6 +6,8 @@ module Path_trie_set = Path_trie_set
 
 module Syscall = Syscall
 
+module Stats = Stats
+
 type 'a handler_db = (string, 'a Syscall.base_handler) Hashtbl.t
 
 let init () =
