@@ -12,7 +12,7 @@ let empty : 'a t =
 let add (path : Abs_path.t) (v : 'a) (t : 'a t) : 'a t =
   let rec aux t parts =
     match parts with
-    | [] | [""] -> { t with value = Some v }
+    | [] -> { t with value = Some v }
     | x :: xs ->
       let children =
         String_map.find_opt x t.children
@@ -28,7 +28,7 @@ let add (path : Abs_path.t) (v : 'a) (t : 'a t) : 'a t =
 let find (path : Abs_path.t) (t : 'a t) : 'a option =
   let rec aux t parts =
     match parts with
-    | [] | [""] -> t.value
+    | [] -> t.value
     | x :: xs ->
       match String_map.find_opt x t.children with
       | None -> None
@@ -38,27 +38,26 @@ let find (path : Abs_path.t) (t : 'a t) : 'a option =
 
 let find_exn path t =
   match find path t with
-  | None -> invalid_arg "find_exn: Path not exist"
+  | None -> invalid_arg "find_exn: Path does not exist"
   | Some x -> x
 
-(* let to_seq (t : t) : string Seq.t =
-   let rec aux (t : t) : string list Seq.t =
-    String_map.to_seq t.children
-    |> Seq.flat_map (fun (k, v) ->
-        Seq.map (fun l ->
-            k :: l
-          )
-          (aux v)
-      )
-    |> (fun s ->
-        if t.is_terminal then
-          Seq.cons [] s
-        else
-          s
-      )
-   in
-   aux t
-   |> Seq.map (fun l ->
-      String_utils.concat_file_names ("/" :: l)
+let to_seq (t : 'a t) : (string * 'a) Seq.t =
+  let rec aux (t : 'a t) : (string list * 'a) Seq.t =
+    let sub_tries_seq =
+      String_map.to_seq t.children
+      |> Seq.flat_map (fun (k, sub_trie) ->
+          Seq.map (fun (l, v) ->
+              (k :: l, v)
+            )
+            (aux sub_trie)
+        )
+    in
+    match t.value with
+    | None -> sub_tries_seq
+    | Some v ->
+      Seq.cons ([], v) sub_tries_seq
+  in
+  aux t
+  |> Seq.map (fun (l, v) ->
+      (String_utils.concat_file_names ("/" :: l), v)
     )
-*)

@@ -28,7 +28,15 @@ let of_parts (parts : string list) : t option =
   aux [] parts
 
 let of_string ?(cwd = root) (path : string) : t option =
-  let parts = String_utils.escaping_split ~on:'/' path in
+  let parts = String_utils.escaping_split ~on:'/' path
+              |> List.rev
+              |> (fun l ->
+                  match l with
+                  | "" :: l -> l
+                  | _ -> l
+                )
+              |> List.rev
+  in
   let parts =
     if path.[0] = '/' then parts
     else
