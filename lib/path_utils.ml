@@ -1,4 +1,4 @@
-let normalize_path ~(cwd : string) (path : string) : string option =
+(* let normalize_path ~(cwd : string) (path : string) : string option =
   let rec aux acc parts =
     match parts with
     | [] -> Some (List.rev acc)
@@ -21,4 +21,4 @@ let normalize_path ~(cwd : string) (path : string) : string option =
   in
   aux [] parts
   |> Option.map String_utils.concat_file_names
-  |> Option.map (fun s -> "/" ^ s)
+  |> Option.map (fun s -> "/" ^ s) *)
