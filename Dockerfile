@@ -8,3 +8,4 @@ RUN opam install oseq
 RUN opam install angstrom
 RUN opam install alcotest qcheck qcheck-alcotest
 RUN opam install timedesc
+RUN apk add strace
