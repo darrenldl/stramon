@@ -6,3 +6,4 @@ RUN opam install utop ocp-indent
 RUN opam install ansiterminal
 RUN opam install oseq
 RUN opam install angstrom
+RUN opam install alcotest qcheck qcheck-alcotest
