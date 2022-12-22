@@ -3,9 +3,9 @@ module Print_utils = struct
     match p with
     | None -> ""
     | Some p ->
-    Stramon_lib.Abs_path.to_parts p
-    |> List.map (fun s -> Printf.sprintf "<%d:%s>" (String.length s) s)
-    |> String.concat "|"
+      Stramon_lib.Abs_path.to_parts p
+      |> List.map (fun s -> Printf.sprintf "<%d:%s>" (String.length s) s)
+      |> String.concat "|"
 end
 
 let nz_small_nat_gen = QCheck.Gen.(map (( + ) 1) small_nat)

@@ -36,7 +36,7 @@ let of_string ?(cwd = root) (path : string) : t option =
     match parts with
     | "" :: parts -> parts
     | _ ->
-        cwd.parts @ parts
+      cwd.parts @ parts
   in
   of_parts parts
 
