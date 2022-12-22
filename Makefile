@@ -16,6 +16,10 @@ release-static :
 run:
 	dune exec -- bin/stramon.exe -f -o test.json ls
 
+.PHONY: lib-tests
+lib-tests :
+	OCAMLRUNPARAM=b dune exec lib-tests/main.exe --no-buffer --force
+
 .PHONY: format
 format :
 	$(OCPINDENT)

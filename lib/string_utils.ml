@@ -1,18 +1,18 @@
-let escaping_split ?(escape_char = '\\') ~on s =
+let escaping_split_on_slash s =
   let acc = ref [] in
   let rec aux seg_start i =
     if i < String.length s then (
       let escaped =
-        i > 1 && s.[i-1] = escape_char
+        i >= 1 && s.[i-1] = '\\'
       in
       if escaped then
-        aux seg_start (succ i)
+        aux seg_start (i + 1)
       else (
-        if s.[i] = on then (
+        if s.[i] = '/' then (
           acc := (String.sub s seg_start (i - seg_start)) :: !acc;
-          aux (succ i) (succ i)
+          aux (i + 1) (i + 1)
         ) else
-          aux seg_start (succ i)
+          aux seg_start (i + 1)
       )
     ) else (
       acc := (String.sub s seg_start (i - seg_start)) :: !acc
@@ -21,11 +21,28 @@ let escaping_split ?(escape_char = '\\') ~on s =
   aux 0 0;
   List.rev !acc
 
+let escape_slash_if_not_already s =
+  let parts = escaping_split_on_slash s in
+  String.concat "\\/" parts
+
+let remove_trailing_escapes s =
+  let rec aux i =
+    if i < 0 then
+      ""
+    else (
+      if s.[i] = '\\' then
+        aux (i - 1)
+      else
+        String.sub s 0 (i + 1)
+    )
+  in
+  aux (String.length s - 1)
+
 let concat_file_names names =
   let splits =
     names
     |> List.map (fun s ->
-        escaping_split ~on:'/' ~escape_char:'\\' s)
+        escaping_split_on_slash s)
     |> List.concat
     |> List.filter (fun s -> s <> "")
   in

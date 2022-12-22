@@ -23,7 +23,7 @@ let add (path : Abs_path.t) (v : 'a) (t : 'a t) : 'a t =
       in
       { t with children }
   in
-  aux t (Abs_path.parts path)
+  aux t (Abs_path.to_parts path)
 
 let find (path : Abs_path.t) (t : 'a t) : 'a option =
   let rec aux t parts =
@@ -34,7 +34,7 @@ let find (path : Abs_path.t) (t : 'a t) : 'a option =
       | None -> None
       | Some t -> aux t xs
   in
-  aux t (Abs_path.parts path)
+  aux t (Abs_path.to_parts path)
 
 let find_exn path t =
   match find path t with

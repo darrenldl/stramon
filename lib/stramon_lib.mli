@@ -5,7 +5,7 @@ module Abs_path : sig
 
   val root : t
 
-  val parts : t -> string list
+  val to_parts : t -> string list
 
   val of_parts : string list -> t option
 

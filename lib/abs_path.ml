@@ -8,7 +8,7 @@ let equal x y =
 
 let root = { parts = [] }
 
-let parts t = t.parts
+let to_parts t = t.parts
 
 let of_parts (parts : string list) : t option =
   let rec aux acc parts =
@@ -25,24 +25,20 @@ let of_parts (parts : string list) : t option =
         )
       | _ -> aux (x :: acc) xs
   in
-  aux [] parts
+  parts
+  |> List.map String_utils.escape_slash_if_not_already
+  |> List.map String_utils.remove_trailing_escapes
+  |> aux []
 
 let of_string ?(cwd = root) (path : string) : t option =
-  let parts = String_utils.escaping_split ~on:'/' path
-              |> List.rev
-              |> (fun l ->
-                  match l with
-                  | "" :: l -> l
-                  | _ -> l
-                )
-              |> List.rev
-  in
+  let parts = String_utils.escaping_split_on_slash path in
   let parts =
-    if path.[0] = '/' then parts
-    else
-      cwd.parts @ parts
+    match parts with
+    | "" :: parts -> parts
+    | _ ->
+        cwd.parts @ parts
   in
   of_parts parts
 
 let to_string (t : t) : string =
-  "/" ^ (String.concat "/" t.parts)
+  String.concat "/" ("" :: t.parts)
