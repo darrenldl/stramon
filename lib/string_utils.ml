@@ -1,9 +1,21 @@
+let count_backslash_backward s i =
+  if i < 0 || i >= String.length s then (
+    invalid_arg "count_backslash_backward: invalid i"
+  );
+  let rec aux i e =
+    if i < 0 || s.[i] <> '\\' then
+      e - i
+    else
+      aux (i - 1) e
+  in
+  aux i i
+
 let escaping_split_on_slash s =
   let acc = ref [] in
   let rec aux seg_start i =
     if i < String.length s then (
       let escaped =
-        i >= 1 && s.[i-1] = '\\'
+        i >= 1 && count_backslash_backward s (i - 1) mod 2 = 1
       in
       if escaped then
         aux seg_start (i + 1)
@@ -25,18 +37,17 @@ let escape_slash_if_not_already s =
   let parts = escaping_split_on_slash s in
   String.concat "\\/" parts
 
-let remove_trailing_escapes s =
-  let rec aux i =
-    if i < 0 then
-      ""
+let remove_trailing_escape s =
+  let len = String.length s in
+  if len = 0 then
+    s
+  else (
+    if count_backslash_backward s (len - 1) mod 2 = 0 then
+      s
     else (
-      if s.[i] = '\\' then
-        aux (i - 1)
-      else
-        String.sub s 0 (i + 1)
+      String.sub s 0 (len - 1)
     )
-  in
-  aux (String.length s - 1)
+  )
 
 let concat_file_names names =
   let splits =

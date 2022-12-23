@@ -27,7 +27,7 @@ let of_parts (parts : string list) : t option =
   in
   parts
   |> List.map String_utils.escape_slash_if_not_already
-  |> List.map String_utils.remove_trailing_escapes
+  |> List.map String_utils.remove_trailing_escape
   |> aux []
 
 let of_string ?(cwd = root) (path : string) : t option =
