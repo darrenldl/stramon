@@ -12,25 +12,23 @@ let count_backslash_backward s i =
 
 let escaping_split_on_slash s =
   let acc = ref [] in
-  let rec aux seg_start i =
+  let rec aux ignore_current seg_start i =
     if i < String.length s then (
-      let escaped =
-        i >= 1 && count_backslash_backward s (i - 1) mod 2 = 1
-      in
-      if escaped then
-        aux seg_start (i + 1)
+      if ignore_current then
+        aux false seg_start (i + 1)
       else (
+        let ignore_next = s.[i] = '\\' in
         if s.[i] = '/' then (
           acc := (String.sub s seg_start (i - seg_start)) :: !acc;
-          aux (i + 1) (i + 1)
+          aux ignore_next (i + 1) (i + 1)
         ) else
-          aux seg_start (i + 1)
+          aux ignore_next seg_start (i + 1)
       )
     ) else (
       acc := (String.sub s seg_start (i - seg_start)) :: !acc
     )
   in
-  aux 0 0;
+  aux false 0 0;
   List.rev !acc
 
 let escape_slash_if_not_already s =
