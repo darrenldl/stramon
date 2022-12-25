@@ -53,4 +53,6 @@ let of_string_exn ?cwd s =
   | Some x -> x
 
 let to_string (t : t) : string =
-  String.concat "/" ("" :: t.parts)
+  match t.parts with
+  | [] -> "/"
+  | _ -> String.concat "/" ("" :: t.parts)
