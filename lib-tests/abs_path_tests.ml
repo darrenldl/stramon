@@ -1,8 +1,15 @@
 open Test_utils
 
 module Alco = struct
+  let to_string_case0 () =
+    Alcotest.(check string)
+      "same string"
+      "/"
+      Stramon_lib.Abs_path.(of_parts_exn [] |> to_string)
+
   let suite =
     [
+      Alcotest.test_case "to_string_case0" `Quick to_string_case0;
     ]
 end
 
