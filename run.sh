@@ -1,1 +1,1 @@
-dune exec --no-buffer -- bin/stramon.exe "$@"
+./_build/default/bin/stramon.exe "$@"
