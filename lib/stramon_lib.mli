@@ -42,6 +42,10 @@ module Path_trie_set : sig
   val mem : Abs_path.t -> t -> bool
 end
 
+module File_utils : sig
+  val kind_of_file : Abs_path.t -> Unix.file_kind option
+end
+
 module Syscall : sig
   type _open = {
     path : string;

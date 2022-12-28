@@ -4,6 +4,8 @@ module Path_trie = Path_trie
 
 module Path_trie_set = Path_trie_set
 
+module File_utils = File_utils
+
 module Syscall = Syscall
 
 module Stats = Stats
