@@ -11,3 +11,4 @@ fuzz-logs/
 fuzz/core.*
 *.tar.gz
 test.json
+*.json
