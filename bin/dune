@@ -9,4 +9,5 @@
             timedesc-tzdb.full
             timedesc-tzlocal.utc
             fmt
+            yojson
             ))
