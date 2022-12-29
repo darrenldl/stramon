@@ -99,7 +99,14 @@ module Monitor_result : sig
   val exn : 'a t -> exn option
 end
 
+type debug_level = [
+  | `None
+  | `Registered
+  | `All
+]
+
 val monitor :
+  ?debug_level:debug_level ->
   ?stdin:Unix.file_descr ->
   ?stdout:Unix.file_descr -> 
   ?stderr:Unix.file_descr -> 

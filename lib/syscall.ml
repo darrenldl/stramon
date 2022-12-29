@@ -135,29 +135,55 @@ let base_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : base optio
 let pp_term (formatter : Format.formatter) (x : term) =
   let rec aux formatter x =
     match x with
-    | String s -> Fmt.pf formatter "%S" s
-    | Int x -> Fmt.pf formatter "%d" x
-    | Pointer s -> Fmt.pf formatter "%s" s
+    | String s -> Fmt.pf formatter "<string:%S>" s
+    | Int x -> Fmt.pf formatter "<int:%d>" x
+    | Pointer s -> Fmt.pf formatter "<ptr:%s>" s
     | Struct l ->
-      Fmt.pf formatter "{%a}"
+      Fmt.pf formatter "<struct:{%a}>"
         Fmt.(list (fun formatter (s, x) ->
             Fmt.pf formatter "%s=%a," s aux x
           ))
         l
     | Const s ->
-      Fmt.pf formatter "%s" s
+      Fmt.pf formatter "<const:%s>" s
     | Flags l ->
-      Fmt.pf formatter "%a"
+      Fmt.pf formatter "<flags:%a>"
         Fmt.(list
                ~sep:(fun formatter () -> Fmt.pf formatter "|")
                string)
         l
     | Array l ->
-      Fmt.pf formatter "{%a}"
-        Fmt.(list aux)
+      Fmt.pf formatter "<array:[%a]>"
+        Fmt.(list ~sep:comma aux)
         l
   in
   aux formatter x
+
+let pp_blob (formatter : Format.formatter) (x : blob) : unit =
+  Fmt.pf formatter "%s(%s) = %s %s %s"
+    x.name x.arg_text
+    x.ret
+    (match x.errno with
+     | None -> ""
+     | Some x -> x
+    )
+    (match x.errno_msg with
+     | None -> ""
+     | Some x -> x
+    )
+
+let pp_base (formatter : Format.formatter) (x : base) : unit =
+  Fmt.pf formatter "%s(%a) = %a %s %s"
+    x.name Fmt.(list ~sep:comma pp_term) x.args
+    pp_term x.ret
+    (match x.errno with
+     | None -> ""
+     | Some x -> x
+    )
+    (match x.errno_msg with
+     | None -> ""
+     | Some x -> x
+    )
 
 type _open = {
   path : string;

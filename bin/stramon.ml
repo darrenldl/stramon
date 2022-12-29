@@ -9,12 +9,15 @@ let force_output = ref false
 
 let no_link = ref false
 
+let debug_level = ref "none"
+
 let latest_link_name = "stramon-latest.json"
 
 let speclist = Arg.[
     ("-o", Set_string output_path, "Output JSON file");
     ("-f", Set force_output, "Force overwrite of output file");
     ("--no-link", Set no_link, Fmt.str "Disable adding/updating symlink %s" latest_link_name);
+    ("--debug-level", Set_string debug_level, "Debug level, one of: none, registered, all");
     ("--", Rest add_to_command, "");
   ]
 
@@ -72,6 +75,16 @@ let () =
       | "" -> Fmt.str "stramon_%a.json" pp_file_date_time (Timedesc.now ())
       | s -> s
     in
+    let debug_level =
+      match !debug_level with
+      | "none" -> `None
+      | "registered" -> `Registered
+      | "all" -> `All
+      | _ -> (
+          Printf.eprintf "Error: Unrecognized debug level %s\n" !debug_level;
+          exit 1
+        )
+    in
     if Sys.file_exists output_path && not !force_output then (
       Printf.eprintf "Error: File %s already exists\n" output_path;
       exit 1
@@ -85,7 +98,7 @@ let () =
             exit 1
           )
       );
-      match Stramon_lib.monitor ~handlers ~init_data:() command with
+      match Stramon_lib.monitor ~debug_level ~handlers ~init_data:() command with
       | Error msg -> (
           Printf.eprintf "Error: %s\n" msg;
           exit 2

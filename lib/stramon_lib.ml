@@ -15,24 +15,44 @@ type 'a handler_db = (string, 'a Syscall.base_handler) Hashtbl.t
 let init () =
   Random.self_init ()
 
-let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : Strace_pipe.line) =
+type debug_level = [
+  | `None
+  | `Registered
+  | `All
+]
+
+let process_line
+    ~(debug_level : debug_level)
+    (handler_db : 'a handler_db)
+    (ctx : 'a Ctx.t)
+    ({ pid; text } : Strace_pipe.line)
+  =
   match Syscall.blob_of_string text with
   | None -> ()
   | Some blob -> (
       let stats = Ctx.get_stats ctx in
       Ctx.set_stats ctx (Stats.record_syscall blob.name stats);
+      (match debug_level with
+       | `None | `Registered -> ()
+       | `All -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_blob blob
+      );
       match Hashtbl.find_opt handler_db blob.name with
       | None -> ()
-      | Some f ->
-        match Syscall.base_of_blob blob with
-        | None -> ()
-        | Some syscall -> (
-            match f (Ctx.get_data ctx) pid syscall with
-            | None -> ()
-            | Some data ->
-              Ctx.set_data ctx data
-            | exception _ -> ()
-          )
+      | Some f -> (
+          match Syscall.base_of_blob blob with
+          | None -> ()
+          | Some syscall -> (
+              (match debug_level with
+               | `None | `All -> ()
+               | `Registered -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_base syscall
+              );
+              match f (Ctx.get_data ctx) pid syscall with
+              | None -> ()
+              | Some data ->
+                Ctx.set_data ctx data
+              | exception _ -> ()
+            )
+        )
     )
 
 module Monitor_result = struct
@@ -51,6 +71,7 @@ end
 
 let monitor
     (type a)
+    ?(debug_level = `None)
     ?(stdin = Unix.stdin)
     ?(stdout = Unix.stdout)
     ?(stderr = Unix.stderr)
@@ -71,7 +92,7 @@ let monitor
         let open Strace_pipe in
         match read_line ctx strace_pipe with
         | Line line -> (
-            process_line handler_db ctx line;
+            process_line ~debug_level handler_db ctx line;
             run ()
           )
         | Not_ready -> run ()
