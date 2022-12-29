@@ -4,19 +4,25 @@ type mode = [
 ]
 
 type t = {
-  r : Path_trie_set.t;
-  rw : Path_trie_set.t;
+  r : Unix.file_kind list Path_trie.t;
+  rw : Unix.file_kind list Path_trie.t;
 }
 
 let empty : t =
   {
-    r = Path_trie_set.empty;
-    rw = Path_trie_set.empty;
+    r = Path_trie.empty;
+    rw = Path_trie.empty;
   }
 
-let add (mode : mode) (path : Abs_path.t) (t : t) : t =
-  let aux x =
-    Path_trie_set.add path x
+let add (path : Abs_path.t) (mode : mode) (t : t) : t =
+  let aux trie =
+    let kind = Stramon_lib.File_utils.kind_of_file path in
+    let l = Stramon_lib.Path_trie.find path trie
+            |> Option.value ~default:[]
+            |> (fun l -> kind :: l)
+            |> List.sort_uniq compare
+    in
+    Path_trie.add path l x
   in
   match mode with
   | `R -> { t with r = aux t.r }
