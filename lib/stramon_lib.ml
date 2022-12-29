@@ -31,6 +31,7 @@ let process_line (handler_db : 'a handler_db) (ctx : 'a Ctx.t) ({ pid; text } : 
             | None -> ()
             | Some data ->
               Ctx.set_data ctx data
+            | exception _ -> ()
           )
     )
 

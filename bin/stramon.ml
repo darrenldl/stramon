@@ -24,18 +24,42 @@ let pp_file_date_time =
   Timedesc.pp
     ~format:"{year}-{mon:0X}-{day:0X}-{hour:0X}{min:0X}{sec:0X}" ()
 
-let handlers =
-  [
-  ]
-
-let json_of_stats (stats : Stramon_lib.Stats.t) : Yojson.Basic.t =
-  let l = Stramon_lib.Stats.syscall_count stats
-          |> List.map (fun (s, i) -> (s, `Int i))
-  in
-  `Assoc l
-
 let write_json (oc : out_channel) (json : Yojson.Basic.t) : unit =
   Yojson.Basic.to_channel oc json
+
+let access = Path_access.make ()
+
+let _open_handler (path : Stramon_lib.Abs_path.t) (flags : string list) : unit =
+  let l = List.filter (fun x ->
+      x = "O_RDONLY"
+      || x = "O_WRONLY"
+      || x = "O_RDWR"
+    ) flags
+  in
+  match l with
+  | "O_RDONLY" :: _ -> (
+      Path_access.add access path `R
+    )
+  | "O_WRONLY" :: _ -> (
+      Path_access.add access path `Rw
+    )
+  | "O_RDWR" :: _ -> (
+      Path_access.add access path `Rw
+    )
+  | _ -> ()
+
+let handlers =
+  let open Stramon_lib in
+  [ `_open (fun () _pid ({ path; flags; mode = _ } : Syscall._open) ->
+        let path = Abs_path.of_string_exn path in
+        _open_handler path flags
+      )
+  ; `_openat (fun () _pid ({ relative_to; path; flags; mode = _ } : Syscall._openat) ->
+        let cwd = Abs_path.of_string_exn relative_to in
+        let path = Abs_path.of_string_exn ~cwd path in
+        _open_handler path flags
+      )
+  ]
 
 let () =
   Stramon_lib.init ();
@@ -61,7 +85,7 @@ let () =
             exit 1
           )
       );
-      match Stramon_lib.monitor ~handlers:[] ~init_data:() command with
+      match Stramon_lib.monitor ~handlers ~init_data:() command with
       | Error msg -> (
           Printf.eprintf "Error: %s\n" msg;
           exit 2
@@ -71,12 +95,8 @@ let () =
             try
               CCIO.with_out output_path (fun oc ->
                   let stats = Stramon_lib.Monitor_result.stats res in
-                  let json =
-                    `Assoc
-                      [
-                        ("stats", json_of_stats stats);
-                      ]
-                  in
+                  let summary = Summary.make stats access in
+                  let json = Summary.to_json summary in
                   write_json oc json
                 )
             with
