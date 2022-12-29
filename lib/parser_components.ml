@@ -64,24 +64,22 @@ let optional_char target =
 
 let ident_string : string t =
   take_while (fun c ->
-      match c with
-      | 'A'..'Z' -> true
-      | 'a'..'z' -> true
-      | '0'..'9' -> true
-      | '_' -> true
-      | _ -> false
+      is_letter c
+      || is_digit c
+      || c = '_'
     )
 
 let skip_non_num_string ~end_markers =
-  skip_while (function
-      | '0' .. '9' -> false
-      | c -> (
-          match end_markers with
-          | None -> true
-          | Some x -> not (String.contains x c)))
+  skip_while (fun c ->
+      not (is_digit c)
+      &&
+      (match end_markers with
+       | None -> true
+       | Some x -> not (String.contains x c))
+    )
 
 let num_string : string t =
-  take_while1 (function '0' .. '9' -> true | _ -> false)
+  take_while1 is_digit
 
 let nat_zero : int t =
   num_string

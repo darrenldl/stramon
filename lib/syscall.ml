@@ -70,7 +70,7 @@ module Parsers = struct
           (char '"' *> hex_string_p non_quote_string >>= fun s ->
            char '"' *> return (String s)
           );
-          (sep_by1 (char '|') non_space_string >>| fun l ->
+          (sep_by1 (char '|') ident_string >>| fun l ->
            match l with
            | [x] -> Const x
            | l -> Flags l
