@@ -81,7 +81,7 @@ module Qc = struct
              Path_map.empty
              l
          in
-         List.length trie_l = List.length l
+         List.length trie_l = Path_map.cardinal m
          &&
          List.for_all (fun (p, _x) ->
              Path_map.find p m = List.assoc p trie_l
@@ -111,7 +111,7 @@ module Qc = struct
              String_map.empty
              l
          in
-         List.length trie_l = List.length l
+         List.length trie_l = String_map.cardinal m
          &&
          List.for_all (fun (p, _x) ->
              String_map.find (Stramon_lib.Abs_path.to_string p) m = List.assoc p trie_l
