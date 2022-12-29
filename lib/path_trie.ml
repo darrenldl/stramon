@@ -41,7 +41,7 @@ let find_exn path t =
   | None -> invalid_arg "find_exn: Path does not exist"
   | Some x -> x
 
-let to_seq (t : 'a t) : (string * 'a) Seq.t =
+let to_seq (t : 'a t) : (Abs_path.t * 'a) Seq.t =
   let rec aux (t : 'a t) : (string list * 'a) Seq.t =
     let sub_tries_seq =
       String_map.to_seq t.children
@@ -59,5 +59,5 @@ let to_seq (t : 'a t) : (string * 'a) Seq.t =
   in
   aux t
   |> Seq.map (fun (l, v) ->
-      (String_utils.concat_file_names ("/" :: l), v)
+      (Abs_path.of_parts_exn l, v)
     )

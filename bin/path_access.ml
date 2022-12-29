@@ -30,3 +30,34 @@ let add (t : t) (path : Stramon_lib.Abs_path.t) (mode : mode) : unit =
   match mode with
   | `R -> t.r <- aux t.r
   | `Rw -> t.rw <- aux t.rw
+
+let string_of_file_kind (kind : Unix.file_kind) : string =
+  let open Unix in
+  match kind with
+  | S_REG -> "REG"
+  | S_DIR -> "DIR"
+  | S_CHR -> "CHR"
+  | S_BLK -> "BLK"
+  | S_LNK -> "LNK"
+  | S_FIFO -> "FIFO"
+  | S_SOCK -> "SOCK"
+
+let json_of_trie (trie : Unix.file_kind list Stramon_lib.Path_trie.t) : Yojson.Basic.t =
+  let l = Stramon_lib.Path_trie.to_seq trie
+          |> Seq.map (fun (path, kinds) ->
+              let kinds = kinds
+                          |> List.map string_of_file_kind
+                          |> List.map (fun s -> `String s)
+              in
+              (Stramon_lib.Abs_path.to_string path, `List kinds)
+            )
+          |> List.of_seq
+  in
+  `Assoc l
+
+let to_json (t : t) : Yojson.Basic.t =
+  `Assoc
+    [
+      ("r", json_of_trie t.r);
+      ("rw", json_of_trie t.rw);
+    ]
