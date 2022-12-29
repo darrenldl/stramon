@@ -60,7 +60,7 @@ module Qc = struct
       )
 
   let to_seq0 =
-    QCheck.Test.make ~count:10_000 ~name:"to_seq0"
+    QCheck.Test.make ~count:1_000 ~name:"to_seq0"
       abs_path_int_pairs
       (fun l ->
          QCheck.assume (List.for_all (fun (p, _) -> Option.is_some p) l);
@@ -90,7 +90,7 @@ module Qc = struct
       )
 
   let to_seq1 =
-    QCheck.Test.make ~count:10_000 ~name:"to_seq1"
+    QCheck.Test.make ~count:1_000 ~name:"to_seq1"
       abs_path_int_pairs
       (fun l ->
          QCheck.assume (List.for_all (fun (p, _) -> Option.is_some p) l);
