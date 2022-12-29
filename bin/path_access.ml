@@ -47,9 +47,9 @@ let json_of_trie (trie : Unix.file_kind list Stramon_lib.Path_trie.t) : Yojson.B
           |> Seq.map (fun (path, kinds) ->
               let kinds = kinds
                           |> List.map string_of_file_kind
-                          |> List.map (fun s -> `String s)
+                          |> String.concat ","
               in
-              (Stramon_lib.Abs_path.to_string path, `List kinds)
+              (Stramon_lib.Abs_path.to_string path, `String kinds)
             )
           |> List.of_seq
   in
