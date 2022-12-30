@@ -1,2 +1,2 @@
 # stramon
-Strace based program behavior monitor utility and library
+Strace based program behavior monitoring utility and library
