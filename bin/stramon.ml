@@ -65,7 +65,6 @@ let handlers =
   ]
 
 let () =
-  Stramon_lib.init ();
   Sys.catch_break true;
   try
     Arg.parse speclist add_to_command usage_msg;

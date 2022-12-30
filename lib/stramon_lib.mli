@@ -77,8 +77,6 @@ module Syscall : sig
   ]
 end
 
-val init : unit -> unit
-
 module Stats : sig
   type t
 

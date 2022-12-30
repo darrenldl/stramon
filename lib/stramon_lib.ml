@@ -12,9 +12,6 @@ module Stats = Stats
 
 type 'a handler_db = (string, 'a Syscall.base_handler) Hashtbl.t
 
-let init () =
-  Random.self_init ()
-
 type debug_level = [
   | `None
   | `Registered
