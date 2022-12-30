@@ -14,7 +14,9 @@ let debug_level = ref "none"
 let latest_link_name = "stramon-latest.json"
 
 let speclist = Arg.[
-    ("-o", Set_string output_path, "Output JSON file");
+    ("-o", Set_string output_path,
+     {|JSON file output path, defaults to: stramon_DATE-TIME.json.
+If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME.json|});
     ("-f", Set force_output, "Force overwrite of output file");
     ("--no-link", Set no_link, Fmt.str "Disable adding/updating symlink %s" latest_link_name);
     ("--debug-level", Set_string debug_level, "Debug level, one of: none, registered, all");
@@ -70,10 +72,24 @@ let () =
   try
     Arg.parse speclist add_to_command usage_msg;
     let command = List.rev !command in
-    let output_path =
-      match !output_path with
-      | "" -> Fmt.str "stramon_%a.json" pp_file_date_time (Timedesc.now ())
-      | s -> s
+    let output_path, latest_link_path =
+      if !output_path = "" then (
+        (Fmt.str "stramon_%a.json" pp_file_date_time (Timedesc.now ()),
+         latest_link_name
+        )
+      ) else (
+        if Sys.file_exists !output_path
+        && Sys.is_directory !output_path
+        then (
+          (Fmt.str "%s/stramon_%a.json" !output_path pp_file_date_time (Timedesc.now ()),
+           Fmt.str "%s/%s" !output_path latest_link_name
+          )
+        ) else (
+          (!output_path,
+           Fmt.str "%s/%s" (Filename.dirname !output_path) latest_link_name
+          )
+        )
+      )
     in
     let debug_level =
       match !debug_level with
@@ -121,15 +137,15 @@ let () =
           if not !no_link then (
             if Unix.has_symlink () then (
               (try
-                 Sys.remove latest_link_name
+                 Sys.remove latest_link_path
                with
                | _ -> ()
               );
               (try
-                 Unix.symlink output_path latest_link_name
+                 Unix.symlink output_path latest_link_path
                with
                | _ -> (
-                   Printf.eprintf "Error: Failed to update symlink %s\n" latest_link_name;
+                   Printf.eprintf "Error: Failed to update symlink %s\n" latest_link_path;
                  )
               )
             ) else (
