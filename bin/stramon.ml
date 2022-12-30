@@ -32,9 +32,7 @@ let pp_file_date_time =
 let write_json (oc : out_channel) (json : Yojson.Basic.t) : unit =
   Yojson.Basic.to_channel oc json
 
-let access = Path_access.make ()
-
-let _open_handler (path : Stramon_lib.Abs_path.t) (flags : string list) : unit =
+let _open_handler access (path : Stramon_lib.Abs_path.t) (flags : string list) =
   let l = List.filter (fun x ->
       x = "O_RDONLY"
       || x = "O_WRONLY"
@@ -43,26 +41,26 @@ let _open_handler (path : Stramon_lib.Abs_path.t) (flags : string list) : unit =
   in
   match l with
   | "O_RDONLY" :: _ -> (
-      Path_access.add access path `R
+      Path_access.add path `R access
     )
   | "O_WRONLY" :: _ -> (
-      Path_access.add access path `Rw
+      Path_access.add path `Rw access
     )
   | "O_RDWR" :: _ -> (
-      Path_access.add access path `Rw
+      Path_access.add path `Rw access
     )
-  | _ -> ()
+  | _ -> access
 
 let handlers =
   let open Stramon_lib in
-  [ `_open (fun () _pid ({ path; flags; mode = _ } : Syscall._open) ->
+  [ `_open (fun access _pid ({ path; flags; mode = _ } : Syscall._open) ->
         let path = Abs_path.of_string_exn path in
-        _open_handler path flags
+        _open_handler access path flags
       )
-  ; `_openat (fun () _pid ({ relative_to; path; flags; mode = _ } : Syscall._openat) ->
+  ; `_openat (fun access _pid ({ relative_to; path; flags; mode = _ } : Syscall._openat) ->
         let cwd = Abs_path.of_string_exn relative_to in
         let path = Abs_path.of_string_exn ~cwd path in
-        _open_handler path flags
+        _open_handler access path flags
       )
   ]
 
@@ -114,7 +112,7 @@ let () =
             exit 1
           )
       );
-      match Stramon_lib.monitor ~debug_level ~handlers ~init_data:() command with
+      match Stramon_lib.monitor ~debug_level ~handlers ~init_data:Path_access.empty command with
       | Error msg -> (
           Printf.eprintf "Error: %s\n" msg;
           exit 2
@@ -124,6 +122,7 @@ let () =
             try
               CCIO.with_out output_path (fun oc ->
                   let stats = Stramon_lib.Monitor_result.stats res in
+                  let access = Stramon_lib.Monitor_result.data res in
                   let summary = Summary.make stats access in
                   let json = Summary.to_json summary in
                   write_json oc json

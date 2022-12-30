@@ -4,17 +4,17 @@ type mode = [
 ]
 
 type t = {
-  mutable r : Unix.file_kind list Stramon_lib.Path_trie.t;
-  mutable rw : Unix.file_kind list Stramon_lib.Path_trie.t;
+  r : Unix.file_kind list Stramon_lib.Path_trie.t;
+  rw : Unix.file_kind list Stramon_lib.Path_trie.t;
 }
 
-let make () : t =
+let empty : t =
   {
     r = Stramon_lib.Path_trie.empty;
     rw = Stramon_lib.Path_trie.empty;
   }
 
-let add (t : t) (path : Stramon_lib.Abs_path.t) (mode : mode) : unit =
+let add (path : Stramon_lib.Abs_path.t) (mode : mode) (t : t) : t =
   let aux trie =
     match Stramon_lib.File_utils.kind_of_file path with
     | None -> trie
@@ -28,8 +28,8 @@ let add (t : t) (path : Stramon_lib.Abs_path.t) (mode : mode) : unit =
       )
   in
   match mode with
-  | `R -> t.r <- aux t.r
-  | `Rw -> t.rw <- aux t.rw
+  | `R -> { t with r = aux t.r }
+  | `Rw -> { t with rw = aux t.rw }
 
 let string_of_file_kind (kind : Unix.file_kind) : string =
   let open Unix in
