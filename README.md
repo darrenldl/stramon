@@ -1,2 +1,2 @@
 # stramon
-Strace based process behavior monitoring utility and library
+strace based process behavior monitoring utility and library
