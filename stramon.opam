@@ -5,7 +5,7 @@ description: ""
 maintainer: ["Darren Ldl"]
 authors: ["Darren Ldl"]
 license: "MIT"
-tags: ["topics" "to describe" "your" "project"]
+tags: ["strace" "process monitoring"]
 homepage: "https://github.com/darrenldl/stramon"
 doc: "https://github.com/darrenldl/stramon"
 bug-reports: "https://github.com/darrenldl/stramon/issues"

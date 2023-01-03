@@ -21,7 +21,7 @@
  (description "")
  (depends ocaml dune fmt angstrom unix containers)
  (tags
-  (topics "to describe" your project)))
+  ("strace" "process monitoring")))
 
 (package
  (name stramon)
@@ -29,6 +29,6 @@
  (description "")
  (depends ocaml dune stramon-lib)
  (tags
-  (topics "to describe" your project)))
+  ("strace" "process monitoring")))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
