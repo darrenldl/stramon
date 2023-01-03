@@ -7,26 +7,26 @@
 (source
  (github darrenldl/stramon))
 
-(authors "Stramon developers")
+(authors "Darren Ldl")
 
 (maintainers "Darren Ldl")
 
 (license MIT)
 
-(documentation https://url/to/documentation)
+(documentation https://github.com/darrenldl/stramon)
 
 (package
  (name stramon-lib)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune)
+ (synopsis "strace based process behavior monitoring library")
+ (description "")
+ (depends ocaml dune fmt angstrom unix containers)
  (tags
   (topics "to describe" your project)))
 
 (package
  (name stramon)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "strace based process behavior monitoring library")
+ (description "")
  (depends ocaml dune stramon-lib)
  (tags
   (topics "to describe" your project)))
