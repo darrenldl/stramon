@@ -11,3 +11,4 @@ RUN opam install alcotest qcheck qcheck-alcotest
 RUN opam install timedesc
 RUN opam install yojson
 RUN apk add libexecinfo-static
+RUN opam install odoc
