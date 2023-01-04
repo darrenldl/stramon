@@ -2,7 +2,7 @@
 
     Stramon-lib is primarily designed to power Stramon,
     or to be used in some fashion of process monitoring.
- *)
+*)
 
 (** {1 Absolute path} *)
 
@@ -96,7 +96,7 @@ module Syscall : sig
     * 
     * The context is the data passed from one call of handler
     * to the next.
-    *)
+  *)
 end
 
 module Stats : sig
@@ -136,15 +136,15 @@ val monitor :
   init_data:'a ->
   string list ->
   ('a Monitor_result.t, string) result
-  (** [debug_level] affects debuging information printed to stderr, defaults to [`None].
-    *
-    * [stdin], [stdout], [stderr] are passed to {!Unix.create_process},
-    * default to {!Unix.stdin}, {!Unix.stdout}, and {!Unix.stderr} respectively.
-    *
-    * [init_data] defines the initial "context".
-    * It will be provided to the first handler to be invoked.
-    *
-    * If any of the handlers raises an exception,
-    * then monitoring is interrupted, and exception is captured in
-    * the returned monitor result.
-   *)
+(** [debug_level] affects debuging information printed to stderr, defaults to [`None].
+  *
+  * [stdin], [stdout], [stderr] are passed to {!Unix.create_process},
+  * default to {!Unix.stdin}, {!Unix.stdout}, and {!Unix.stderr} respectively.
+  *
+  * [init_data] defines the initial "context".
+  * It will be provided to the first handler to be invoked.
+  *
+  * If any of the handlers raises an exception,
+  * then monitoring is interrupted, and exception is captured in
+  * the returned monitor result.
+*)
