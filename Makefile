@@ -16,6 +16,10 @@ release-static :
 lib-tests :
 	OCAMLRUNPARAM=b dune exec lib-tests/main.exe --no-buffer --force
 
+.PHONY: doc
+doc:
+	dune build @doc
+
 .PHONY: format
 format :
 	$(OCPINDENT)

@@ -138,8 +138,8 @@ val monitor :
   ('a Monitor_result.t, string) result
 (** [debug_level] affects debuging information printed to stderr, defaults to [`None].
   *
-  * [stdin], [stdout], [stderr] are passed to {!Unix.create_process},
-  * default to {!Unix.stdin}, {!Unix.stdout}, and {!Unix.stderr} respectively.
+  * [stdin], [stdout], [stderr] are passed to [Unix.create_process],
+  * default to [Unix.stdin], [Unix.stdout], and [Unix.stderr] respectively.
   *
   * [init_data] defines the initial "context".
   * It will be provided to the first handler to be invoked.
