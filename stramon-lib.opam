@@ -10,12 +10,13 @@ homepage: "https://github.com/darrenldl/stramon"
 doc: "https://github.com/darrenldl/stramon"
 bug-reports: "https://github.com/darrenldl/stramon/issues"
 depends: [
-  "ocaml"
+  "ocaml" {>= "4.10"}
+  "unix"
   "dune" {>= "3.4"}
   "fmt"
   "angstrom"
-  "unix"
-  "containers"
+  "containers" {>= "3.6"}
+  "timedesc" {>= "0.9.1"}
   "odoc" {with-doc}
 ]
 build: [
