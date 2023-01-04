@@ -91,6 +91,12 @@ module Syscall : sig
     | `_openat of 'a -> int -> _openat -> 'a
     | `_read of 'a -> int -> _read -> 'a
   ]
+  (** A handler receives the user-defined "context",
+    * process id, and finally the syscall specific data.
+    * 
+    * The context is the data passed from one call of handler
+    * to the next.
+    *)
 end
 
 module Stats : sig
@@ -105,8 +111,10 @@ end
 
 module Monitor_result : sig
   type 'a t
+  (** Result of a monitoring session *)
 
   val data : 'a t -> 'a
+  (** Final context of a monitoring session *)
 
   val stats : 'a t -> Stats.t
 
@@ -132,4 +140,11 @@ val monitor :
     *
     * [stdin], [stdout], [stderr] are passed to {!Unix.create_process},
     * default to {!Unix.stdin}, {!Unix.stdout}, and {!Unix.stderr} respectively.
+    *
+    * [init_data] defines the initial "context".
+    * It will be provided to the first handler to be invoked.
+    *
+    * If any of the handlers raises an exception,
+    * then monitoring is interrupted, and exception is captured in
+    * the returned monitor result.
    *)
