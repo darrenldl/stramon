@@ -1,3 +1,11 @@
+(** strace based process behavior monitoring library
+
+    Stramon-lib is primarily designed to power Stramon,
+    or to be used in some fashion of process monitoring.
+ *)
+
+(** {1 Absolute path} *)
+
 module Abs_path : sig
   type t
 
@@ -20,6 +28,8 @@ module Abs_path : sig
   val to_string : t -> string
 end
 
+(** {1 Path trie} *)
+
 module Path_trie : sig
   type 'a t
 
@@ -34,6 +44,8 @@ module Path_trie : sig
   val to_seq : 'a t -> (Abs_path.t * 'a) Seq.t
 end
 
+(** {1 Path trie based set} *)
+
 module Path_trie_set : sig
   type t
 
@@ -44,9 +56,13 @@ module Path_trie_set : sig
   val mem : Abs_path.t -> t -> bool
 end
 
+(** {1 Misc utilities} *)
+
 module File_utils : sig
   val kind_of_file : Abs_path.t -> Unix.file_kind option
 end
+
+(** {1 Main monitoring facilities and data types} *)
 
 module Syscall : sig
   type _open = {
@@ -112,3 +128,8 @@ val monitor :
   init_data:'a ->
   string list ->
   ('a Monitor_result.t, string) result
+  (** [debug_level] affects debuging information printed to stderr, defaults to [`None].
+    *
+    * [stdin], [stdout], [stderr] are passed to {!Unix.create_process},
+    * default to {!Unix.stdin}, {!Unix.stdout}, and {!Unix.stderr} respectively.
+   *)
