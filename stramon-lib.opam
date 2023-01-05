@@ -7,7 +7,7 @@ authors: ["Darren Ldl"]
 license: "MIT"
 tags: ["strace" "process monitoring"]
 homepage: "https://github.com/darrenldl/stramon"
-doc: "https://github.com/darrenldl/stramon"
+doc: "https://ocaml.org/p/stramon-lib"
 bug-reports: "https://github.com/darrenldl/stramon/issues"
 depends: [
   "ocaml" {>= "4.10"}
@@ -16,7 +16,6 @@ depends: [
   "fmt"
   "angstrom"
   "containers" {>= "3.6"}
-  "timedesc" {>= "0.9.1"}
   "odoc" {with-doc}
 ]
 build: [

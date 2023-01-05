@@ -13,12 +13,11 @@
 
 (license MIT)
 
-(documentation https://ocaml.org/p/stramon-lib)
-
 (package
  (name stramon-lib)
  (synopsis "strace based process behavior monitoring library")
  (description "")
+ (documentation https://ocaml.org/p/stramon-lib)
  (depends
    (ocaml (>= "4.10"))
    unix
@@ -26,7 +25,6 @@
    fmt
    angstrom
    (containers (>= "3.6"))
-   (timedesc (>= "0.9.1"))
    )
  (tags
   (
@@ -39,10 +37,12 @@
  (name stramon)
  (synopsis "strace based process behavior monitoring library")
  (description "")
+ (documentation https://github.com/darrenldl/stramon)
  (depends
    ocaml
    dune
    (stramon-lib (= :version))
+   (timedesc (>= "0.9.1"))
    )
  (tags
   ("strace"

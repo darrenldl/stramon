@@ -13,6 +13,7 @@ depends: [
   "ocaml"
   "dune" {>= "3.4"}
   "stramon-lib" {= version}
+  "timedesc" {>= "0.9.1"}
   "odoc" {with-doc}
 ]
 build: [
