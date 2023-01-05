@@ -7,6 +7,8 @@
 (** {1 Absolute path} *)
 
 module Abs_path : sig
+  (** Normalized absolute path representation *)
+
   type t
 
   val equal : t -> t -> bool
@@ -144,7 +146,14 @@ val monitor :
   init_data:'a ->
   string list ->
   ('a Monitor_result.t, string) result
-(** [debug_level] affects debuging information printed to stderr, defaults to [`None].
+(** [monitor ~handlers ~init_data cmd]
+    spawns a monitoring session of [cmd].
+
+    [debug_level] determines the debuging information printed to stderr:
+
+    - [`None] prints nothing (default)
+    - [`Registered] prints only data recognized by a handler
+    - [`All] prints all reconstructed data received from strace
 
     [stdin], [stdout], [stderr] are passed to [Unix.create_process],
     default to [Unix.stdin], [Unix.stdout], and [Unix.stderr] respectively.
