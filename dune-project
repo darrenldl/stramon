@@ -13,7 +13,7 @@
 
 (license MIT)
 
-(documentation https://github.com/darrenldl/stramon)
+(documentation https://ocaml.org/p/stramon-lib)
 
 (package
  (name stramon-lib)
