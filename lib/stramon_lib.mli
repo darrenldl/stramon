@@ -39,6 +39,8 @@ module Path_trie : sig
 
   val add : Abs_path.t -> 'a -> 'a t -> 'a t
 
+  val remove : Abs_path.t -> 'a t -> 'a t
+
   val find : Abs_path.t -> 'a t -> 'a option
 
   val find_exn : Abs_path.t -> 'a t -> 'a
@@ -54,6 +56,8 @@ module Path_trie_set : sig
   val empty : t
 
   val add : Abs_path.t -> t -> t
+
+  val remove : Abs_path.t -> t -> t
 
   val mem : Abs_path.t -> t -> bool
 end
