@@ -58,12 +58,6 @@ module Path_trie_set : sig
   val mem : Abs_path.t -> t -> bool
 end
 
-(** {1 Misc utilities} *)
-
-module Utils : sig
-  val kind_of_file : Abs_path.t -> Unix.file_kind option
-end
-
 (** {1 Main monitoring facilities} *)
 
 module Syscall : sig
@@ -165,3 +159,9 @@ val monitor :
     then monitoring is interrupted, and exception is captured in
     the returned monitor result.
 *)
+
+(** {1 Misc utilities} *)
+
+module Utils : sig
+  val kind_of_file : Abs_path.t -> Unix.file_kind option
+end
