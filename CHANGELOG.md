@@ -2,7 +2,11 @@
 
 ## 0.2.0
 
-- Renamed `Stramon_lib.File_utils` to `Stramon_lib.Utils`
+#### Stramon-lib
+
+- Renamed `File_utils` to `Utils`
+
+- Added `Path_trie.remove` and `Path_trie_set.remove`
 
 ## 0.1.0
 
