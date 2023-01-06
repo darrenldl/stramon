@@ -2,7 +2,7 @@
 
 ## 0.2.0
 
-#### Stramon-lib
+### Stramon-lib
 
 - Renamed `File_utils` to `Utils`
 
