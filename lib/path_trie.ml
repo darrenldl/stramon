@@ -9,10 +9,10 @@ let empty : 'a t =
     children = String_map.empty;
   }
 
-let add_value_direct (path : Abs_path.t) (value : 'a option) (t : 'a t) : 'a t =
+let add (path : Abs_path.t) (v : 'a) (t : 'a t) : 'a t =
   let rec aux t parts =
     match parts with
-    | [] -> { t with value }
+    | [] -> { t with value = Some v }
     | x :: xs ->
       let children =
         String_map.find_opt x t.children
@@ -25,11 +25,21 @@ let add_value_direct (path : Abs_path.t) (value : 'a option) (t : 'a t) : 'a t =
   in
   aux t (Abs_path.to_parts path)
 
-let add (path : Abs_path.t) (v : 'a) (t : 'a t) : 'a t =
-  add_value_direct path (Some v) t
-
 let remove (path : Abs_path.t) (t : 'a t) : 'a t =
-  add_value_direct path None t
+  let rec aux t parts =
+    match parts with
+    | [] -> { t with value = None }
+    | x :: xs -> (
+        match String_map.find_opt x t.children with
+        | None -> t
+        | Some sub_trie ->
+          let children =
+            String_map.add x (aux sub_trie xs) t.children
+          in
+          { t with children }
+      )
+  in
+  aux t (Abs_path.to_parts path)
 
 let find (path : Abs_path.t) (t : 'a t) : 'a option =
   let rec aux t parts =
