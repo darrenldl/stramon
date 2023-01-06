@@ -46,7 +46,7 @@ module Path_trie : sig
   val to_seq : 'a t -> (Abs_path.t * 'a) Seq.t
 end
 
-(** {1 Path trie based set} *)
+(** {1 Path trie based path set} *)
 
 module Path_trie_set : sig
   type t
