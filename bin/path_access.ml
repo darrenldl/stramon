@@ -16,7 +16,7 @@ let empty : t =
 
 let add (path : Stramon_lib.Abs_path.t) (mode : mode) (t : t) : t =
   let aux trie =
-    match Stramon_lib.File_utils.kind_of_file path with
+    match Stramon_lib.Utils.kind_of_file path with
     | None -> trie
     | Some kind -> (
         let l = Stramon_lib.Path_trie.find path trie

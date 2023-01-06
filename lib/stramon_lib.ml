@@ -4,7 +4,9 @@ module Path_trie = Path_trie
 
 module Path_trie_set = Path_trie_set
 
-module File_utils = File_utils
+module Utils = struct
+  let kind_of_file = File_utils.kind_of_file
+end
 
 module Syscall = Syscall
 

@@ -60,7 +60,7 @@ end
 
 (** {1 Misc utilities} *)
 
-module File_utils : sig
+module Utils : sig
   val kind_of_file : Abs_path.t -> Unix.file_kind option
 end
 
