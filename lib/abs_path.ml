@@ -6,7 +6,7 @@ let compare (x : t) (y : t) =
   List.compare String.compare x.parts y.parts
 
 let equal x y =
-  compare x y = 0
+  List.equal String.equal x.parts y.parts
 
 let root = { parts = [] }
 

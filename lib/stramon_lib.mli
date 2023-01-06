@@ -37,6 +37,8 @@ module Path_trie : sig
 
   val empty : 'a t
 
+  val is_empty : 'a t -> bool
+
   val add : Abs_path.t -> 'a -> 'a t -> 'a t
 
   val remove : Abs_path.t -> 'a t -> 'a t
@@ -45,7 +47,15 @@ module Path_trie : sig
 
   val find_exn : Abs_path.t -> 'a t -> 'a
 
+  val merge : (Abs_path.t -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
+
+  val union : (Abs_path.t -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
+
+  val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
+
   val to_seq : 'a t -> (Abs_path.t * 'a) Seq.t
+
+  val of_seq : (Abs_path.t * 'a) Seq.t -> 'a t
 end
 
 (** {1 Path trie based path set} *)
@@ -55,11 +65,23 @@ module Path_trie_set : sig
 
   val empty : t
 
+  val is_empty : t -> bool
+
   val add : Abs_path.t -> t -> t
 
   val remove : Abs_path.t -> t -> t
 
   val mem : Abs_path.t -> t -> bool
+
+  val union : t -> t -> t
+
+  val inter : t -> t -> t
+
+  val equal : t -> t -> bool
+
+  val to_seq : t -> Abs_path.t Seq.t
+
+  val of_seq : Abs_path.t Seq.t -> t
 end
 
 (** {1 Main monitoring facilities} *)

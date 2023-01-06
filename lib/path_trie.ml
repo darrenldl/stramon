@@ -77,3 +77,57 @@ let to_seq (t : 'a t) : (Abs_path.t * 'a) Seq.t =
   |> Seq.map (fun (l, v) ->
       (Abs_path.of_parts_exn l, v)
     )
+
+let of_seq (s : (Abs_path.t * 'a) Seq.t) : 'a t =
+  Seq.fold_left (fun acc (p, x) ->
+      add p x acc
+    )
+    empty
+    s
+
+let is_empty t =
+  match to_seq t () with
+  | Seq.Nil -> true
+  | _ -> false
+
+let merge
+    (type a b c)
+    (f : Abs_path.t -> a option -> b option -> c option)
+    (t1 : a t)
+    (t2 : b t)
+  : c t =
+  let s1 = to_seq t1 |> Seq.map fst in
+  let s2 = to_seq t2 |> Seq.map fst in
+  let keys = Seq.append s1 s2
+             |> Seq.fold_left (fun acc p ->
+                 Abs_path_set.add p acc
+               )
+               Abs_path_set.empty
+  in
+  Abs_path_set.to_seq keys
+  |> Seq.fold_left (fun t p ->
+      match f p (find p t1) (find p t2) with
+      | None -> t
+      | Some x -> add p x t
+    )
+    empty
+
+let union
+    (type a)
+    (f : Abs_path.t -> a -> a -> a option)
+    (t1 : a t)
+    (t2 : a t)
+  : a t =
+  merge (fun p x y ->
+      match x, y with
+      | None, None -> None
+      | Some v, None -> Some v
+      | None, Some v -> Some v
+      | Some x, Some y -> f p x y
+    ) t1 t2
+
+let equal (f : 'a -> 'a -> bool) t1 t2 =
+  Seq.equal (fun (p1, v1) (p2, v2) ->
+      Abs_path.equal p1 p2 && f v1 v2
+    )
+    (to_seq t1) (to_seq t2)
