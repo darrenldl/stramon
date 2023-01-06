@@ -146,7 +146,7 @@ val monitor :
     [debug_level] determines the debuging information printed to stderr:
 
     - [`None] prints nothing (default)
-    - [`Registered] prints only data recognized by a handler
+    - [`Registered] prints only data recognized by one of the [handlers]
     - [`All] prints all reconstructed data received from strace
 
     [stdin], [stdout], [stderr] are passed to [Unix.create_process],
