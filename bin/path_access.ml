@@ -16,16 +16,17 @@ let empty : t =
 
 let add (path : Stramon_lib.Abs_path.t) (mode : mode) (t : t) : t =
   let aux trie =
-    match Stramon_lib.Utils.kind_of_file path with
-    | None -> trie
-    | Some kind -> (
-        let l = Stramon_lib.Path_trie.find path trie
-                |> Option.value ~default:[]
-                |> (fun l -> kind :: l)
-                |> List.sort_uniq compare
-        in
-        Stramon_lib.Path_trie.add path l trie
-      )
+    let l = Stramon_lib.Path_trie.find path trie
+            |> Option.value ~default:[]
+            |> (fun l ->
+                match Stramon_lib.Utils.kind_of_file path with
+                | None -> l
+                | Some kind ->
+                  kind :: l
+              )
+            |> List.sort_uniq compare
+    in
+    Stramon_lib.Path_trie.add path l trie
   in
   match mode with
   | `R -> { t with r = aux t.r }
