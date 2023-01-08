@@ -1,5 +1,9 @@
 # Changlog
 
+## Stramon 0.2.0
+
+- Stramon now still collects access information even if `kind_of_file` fails
+
 ## Stramon-lib 0.2.0
 
 - Renamed `File_utils` to `Utils`
@@ -37,6 +41,10 @@
 - Renamed `data` in `Monitor_result.t` to `ctx`
 
 - Renamed `init_data` parameter of `monitor` to `init_ctx`
+
+## Stramon 0.1.0
+
+- Base version
 
 ## Stramon-lib 0.1.0
 
