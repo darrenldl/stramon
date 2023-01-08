@@ -184,6 +184,10 @@ val monitor :
     If any of the handlers raises an exception,
     then monitoring is interrupted, and exception is captured in
     the returned monitor result.
+
+    Returns [Error] if [monitor] fails to create process
+    with [cmd] wrapped with strace.
+    This normally means the strace program is not available.
 *)
 
 (** {1 Misc utilities} *)
