@@ -1,19 +1,19 @@
 type 'a t = {
   proc_ctxs : (int, Proc_ctx.t) Hashtbl.t;
   mutable stats : Stats.t;
-  mutable data : 'a;
+  mutable user_ctx : 'a;
 }
 
-let make (data : 'a) : 'a t =
+let make (user_ctx : 'a) : 'a t =
   {
     proc_ctxs = Hashtbl.create 100;
     stats = Stats.empty;
-    data;
+    user_ctx;
   }
 
-let get_data t = t.data
+let get_user_ctx t = t.user_ctx
 
-let set_data t x = t.data <- x
+let set_user_ctx t x = t.user_ctx <- x
 
 let get_stats t = t.stats
 

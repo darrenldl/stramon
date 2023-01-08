@@ -111,7 +111,7 @@ let () =
             exit 1
           )
       );
-      match Stramon_lib.monitor ~debug_level ~handlers ~init_data:Path_access.empty command with
+      match Stramon_lib.monitor ~debug_level ~handlers ~init_ctx:Path_access.empty command with
       | Error msg -> (
           Printf.eprintf "Error: %s\n" msg;
           exit 2
@@ -121,7 +121,7 @@ let () =
             try
               CCIO.with_out output_path (fun oc ->
                   let stats = Stramon_lib.Monitor_result.stats res in
-                  let access = Stramon_lib.Monitor_result.data res in
+                  let access = Stramon_lib.Monitor_result.ctx res in
                   let summary = Summary.make stats access in
                   let json = Summary.to_json summary in
                   write_json oc json

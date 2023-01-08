@@ -143,7 +143,7 @@ module Monitor_result : sig
 
   type 'a t
 
-  val data : 'a t -> 'a
+  val ctx : 'a t -> 'a
   (** Final context of a monitoring session *)
 
   val stats : 'a t -> Stats.t
@@ -163,10 +163,10 @@ val monitor :
   ?stdout:Unix.file_descr -> 
   ?stderr:Unix.file_descr -> 
   handlers:'a Syscall.handler list ->
-  init_data:'a ->
+  init_ctx:'a ->
   string list ->
   ('a Monitor_result.t, string) result
-(** [monitor ~handlers ~init_data cmd]
+(** [monitor ~handlers ~init_ctx cmd]
     spawns a monitoring session of [cmd].
 
     [debug_level] determines the debuging information printed to stderr:
@@ -178,7 +178,7 @@ val monitor :
     [stdin], [stdout], [stderr] are passed to [Unix.create_process],
     default to [Unix.stdin], [Unix.stdout], and [Unix.stderr] respectively.
 
-    [init_data] defines the initial "context".
+    [init_ctx] defines the initial "context".
     It will be provided to the first handler to be invoked.
 
     If any of the handlers raises an exception,

@@ -1,8 +1,6 @@
 # Changlog
 
-## 0.2.0
-
-### Stramon-lib
+## Stramon-lib 0.2.0
 
 - Renamed `File_utils` to `Utils`
 
@@ -36,6 +34,10 @@
 
   - `of_seq`
 
-## 0.1.0
+- Renamed `data` in `Monitor_result.t` to `ctx`
+
+- Renamed `init_data` parameter of `monitor` to `init_ctx`
+
+## Stramon-lib 0.1.0
 
 - Base version

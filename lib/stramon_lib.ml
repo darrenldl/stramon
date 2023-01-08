@@ -45,10 +45,10 @@ let process_line
                | `None | `All -> ()
                | `Registered -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_base syscall
               );
-              match f (Ctx.get_data ctx) pid syscall with
+              match f (Ctx.get_user_ctx ctx) pid syscall with
               | None -> ()
-              | Some data ->
-                Ctx.set_data ctx data
+              | Some user_ctx ->
+                Ctx.set_user_ctx ctx user_ctx
               | exception _ -> ()
             )
         )
@@ -56,12 +56,18 @@ let process_line
 
 module Monitor_result = struct
   type 'a t = {
-    data : 'a;
+    user_ctx : 'a;
     stats : Stats.t;
     exn : exn option;
   }
 
-  let data t = t.data
+  let make user_ctx stats exn =
+    { user_ctx;
+      stats;
+      exn;
+    }
+
+  let ctx t = t.user_ctx
 
   let stats t = t.stats
 
@@ -75,13 +81,13 @@ let monitor
     ?(stdout = Unix.stdout)
     ?(stderr = Unix.stderr)
     ~(handlers : a Syscall.handler list)
-    ~(init_data : a)
+    ~(init_ctx : a)
     (cmd : string list)
   : (a Monitor_result.t, string) result =
   match Proc_utils.exec ~stdin ~stdout ~stderr cmd with
   | Error msg -> Error msg
   | Ok (_pid, strace_pipe, cleanup) -> (
-      let ctx = Ctx.make init_data in
+      let ctx = Ctx.make init_ctx in
       let handler_db : a handler_db =
         List.to_seq handlers
         |> Seq.map Syscall.base_handler_of_handler
@@ -97,7 +103,7 @@ let monitor
         | Not_ready -> run ()
         | Eof -> ()
       in
-      let exn' =
+      let exn =
         (
           try
             run ();
@@ -110,9 +116,9 @@ let monitor
             )
         )
       in
-      Ok Monitor_result.{
-          data = Ctx.get_data ctx;
-          stats = Ctx.get_stats ctx;
-          exn = exn';
-        }
+      Ok (Monitor_result.make
+            (Ctx.get_user_ctx ctx)
+            (Ctx.get_stats ctx)
+            exn
+         )
     )
