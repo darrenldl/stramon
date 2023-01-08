@@ -41,7 +41,7 @@
  (depends
    ocaml
    dune
-   (stramon-lib (= :version))
+   (stramon-lib (>= "0.2.0"))
    (timedesc (>= "0.9.1"))
    )
  (tags
