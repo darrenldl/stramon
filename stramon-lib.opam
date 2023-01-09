@@ -14,7 +14,7 @@ tags: ["strace" "process monitoring"]
 homepage: "https://github.com/darrenldl/stramon"
 doc: "https://ocaml.org/p/stramon-lib"
 bug-reports: "https://github.com/darrenldl/stramon/issues"
-available: [ os = "linux" ]
+available: [os = "linux"]
 depends: [
   "ocaml" {>= "4.10"}
   "dune" {>= "3.4"}
