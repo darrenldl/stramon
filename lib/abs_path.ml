@@ -26,14 +26,15 @@ let of_parts (parts : string list) : t option =
             aux ys xs
         )
       | _ -> (
-          if String_utils.has_trailing_escape x then
+          if String_utils.has_trailing_escape x
+          || String.contains x '/'
+          then
             None
           else
             aux (x :: acc) xs
         )
   in
-  parts
-  |> aux []
+  aux [] parts
 
 let of_parts_exn parts =
   match of_parts parts with

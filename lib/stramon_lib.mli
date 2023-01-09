@@ -20,6 +20,18 @@ module Abs_path : sig
   val to_parts : t -> string list
 
   val of_parts : string list -> t option
+  (** Parts that are empty or is a single dot are ignored,
+      i.e. [ [ "abc"; ""; "."; "def" ] ] is treated as [ "abc"; "def" ].
+
+      [..] goes back one level if possible, returns [None]
+      if not possible.
+
+      Returns [None] if any part
+
+      - has trailing backslashes (odd number of backslashes at the end)
+
+      - or contains [/]
+  *)
 
   val of_parts_exn : string list -> t
 
