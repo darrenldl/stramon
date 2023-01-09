@@ -16,7 +16,10 @@
 (package
  (name stramon-lib)
  (synopsis "strace based process behavior monitoring library")
- (description "")
+ (description "
+Stramon-lib is primarily designed to power Stramon,
+or to be used in similar fashion of process monitoring.
+")
  (documentation https://ocaml.org/p/stramon-lib)
  (depends
    (ocaml (>= "4.10"))
