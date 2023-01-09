@@ -4,9 +4,14 @@ OCPINDENT = ocp-indent \
 	--inplace \
 	$(SRCFILES)
 
+OPAMFILES = *.opam
+
+PATCH_OPAMFILES = sed -i 's/"@runtest"\s*{with-test}//g' $(OPAMFILES)
+
 .PHONY: all
 all:
 	dune build @all
+	$(PATCH_OPAMFILES)
 
 .PHONY: release-static
 release-static :
