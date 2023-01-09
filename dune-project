@@ -23,11 +23,13 @@ or to be used in similar fashion of process monitoring.
  (documentation https://ocaml.org/p/stramon-lib)
  (depends
    (ocaml (>= "4.10"))
-   unix
    dune
    fmt
-   angstrom
+   (angstrom (>= "0.15.0"))
    (containers (>= "3.6"))
+   (alcotest :with-test)
+   (qcheck-alcotest :with-test)
+   (qcheck :with-test)
    )
  (tags
   (

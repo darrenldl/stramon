@@ -15,11 +15,13 @@ doc: "https://ocaml.org/p/stramon-lib"
 bug-reports: "https://github.com/darrenldl/stramon/issues"
 depends: [
   "ocaml" {>= "4.10"}
-  "unix"
   "dune" {>= "3.4"}
   "fmt"
-  "angstrom"
+  "angstrom" {>= "0.15.0"}
   "containers" {>= "3.6"}
+  "alcotest" {with-test}
+  "qcheck-alcotest" {with-test}
+  "qcheck" {with-test}
   "odoc" {with-doc}
 ]
 build: [
