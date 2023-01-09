@@ -10,48 +10,15 @@ let count_backslash_backward s i =
   in
   aux i i
 
-let escaping_split_on_slash s =
-  let acc = ref [] in
-  let rec aux ignore_current seg_start i =
-    if i < String.length s then (
-      if ignore_current then
-        aux false seg_start (i + 1)
-      else (
-        let ignore_next = s.[i] = '\\' in
-        if s.[i] = '/' then (
-          acc := (String.sub s seg_start (i - seg_start)) :: !acc;
-          aux ignore_next (i + 1) (i + 1)
-        ) else
-          aux ignore_next seg_start (i + 1)
-      )
-    ) else (
-      acc := (String.sub s seg_start (i - seg_start)) :: !acc
-    )
-  in
-  aux false 0 0;
-  List.rev !acc
-
-let escape_slash_if_not_already s =
-  let parts = escaping_split_on_slash s in
-  String.concat "\\/" parts
-
-let remove_trailing_escape s =
+let has_trailing_escape s =
   let len = String.length s in
-  if len = 0 then
-    s
-  else (
-    if count_backslash_backward s (len - 1) mod 2 = 0 then
-      s
-    else (
-      String.sub s 0 (len - 1)
-    )
-  )
+  count_backslash_backward s (len - 1) mod 2 = 1
 
 let concat_file_names names =
   let splits =
     names
     |> List.map (fun s ->
-        escaping_split_on_slash s)
+        String.split_on_char '/' s)
     |> List.concat
     |> List.filter (fun s -> s <> "")
   in

@@ -42,6 +42,8 @@
 
 - Renamed `init_data` parameter of `monitor` to `init_ctx`
 
+- Removed escaped slash handling logic
+
 ## Stramon 0.1.0
 
 - Base version

@@ -25,11 +25,14 @@ let of_parts (parts : string list) : t option =
           | _ :: ys ->
             aux ys xs
         )
-      | _ -> aux (x :: acc) xs
+      | _ -> (
+          if String_utils.has_trailing_escape x then
+            None
+          else
+            aux (x :: acc) xs
+        )
   in
   parts
-  |> List.map String_utils.escape_slash_if_not_already
-  |> List.map String_utils.remove_trailing_escape
   |> aux []
 
 let of_parts_exn parts =
@@ -38,7 +41,7 @@ let of_parts_exn parts =
   | Some x -> x
 
 let of_string ?(cwd = root) (path : string) : t option =
-  let parts = String_utils.escaping_split_on_slash path in
+  let parts = String.split_on_char '/' path in
   let parts =
     match parts with
     | "" :: parts -> parts
