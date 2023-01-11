@@ -22,7 +22,7 @@ or to be used in similar fashion of process monitoring.
 ")
  (documentation https://ocaml.org/p/stramon-lib)
  (depends
-   (ocaml (>= "4.10"))
+   (ocaml (>= "4.11"))
    dune
    fmt
    (angstrom (>= "0.15.0"))
