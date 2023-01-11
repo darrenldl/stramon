@@ -15,7 +15,7 @@
 
 (package
  (name stramon-lib)
- (synopsis "strace based process behavior monitoring library")
+ (synopsis "Process behavior monitoring library based on strace")
  (description "
 Stramon-lib is primarily designed to power Stramon,
 or to be used in similar fashion of process monitoring.
