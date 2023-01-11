@@ -24,7 +24,7 @@ or to be used in similar fashion of process monitoring.
  (depends
    (ocaml (>= "4.14"))
    dune
-   fmt
+   (fmt (>= "0.9.0"))
    (angstrom (>= "0.15.0"))
    (containers (>= "3.6"))
    (alcotest :with-test)
