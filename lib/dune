@@ -3,6 +3,7 @@
  (public_name stramon-lib)
  (name stramon_lib)
  (libraries fmt
+            seq
             unix
             containers
             angstrom

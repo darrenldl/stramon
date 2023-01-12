@@ -71,7 +71,7 @@ let to_seq (t : 'a t) : (Abs_path.t * 'a) Seq.t =
     match t.value with
     | None -> sub_tries_seq
     | Some v ->
-      Seq.cons ([], v) sub_tries_seq
+      CCSeq.cons ([], v) sub_tries_seq
   in
   aux t
   |> Seq.map (fun (l, v) ->
@@ -98,7 +98,7 @@ let merge
   : c t =
   let s1 = to_seq t1 |> Seq.map fst in
   let s2 = to_seq t2 |> Seq.map fst in
-  let keys = Seq.append s1 s2
+  let keys = CCSeq.append s1 s2
              |> Seq.fold_left (fun acc p ->
                  Abs_path_set.add p acc
                )
@@ -127,7 +127,7 @@ let union
     ) t1 t2
 
 let equal (f : 'a -> 'a -> bool) t1 t2 =
-  Seq.equal (fun (p1, v1) (p2, v2) ->
+  CCSeq.equal (fun (p1, v1) (p2, v2) ->
       Abs_path.equal p1 p2 && f v1 v2
     )
     (to_seq t1) (to_seq t2)

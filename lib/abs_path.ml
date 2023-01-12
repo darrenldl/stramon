@@ -3,10 +3,10 @@ type t = {
 }
 
 let compare (x : t) (y : t) =
-  List.compare String.compare x.parts y.parts
+  CCList.compare String.compare x.parts y.parts
 
 let equal x y =
-  List.equal String.equal x.parts y.parts
+  CCList.equal String.equal x.parts y.parts
 
 let root = { parts = [] }
 
