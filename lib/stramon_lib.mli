@@ -112,7 +112,7 @@ module Syscall : sig
       do not follow such naming scheme, however, to avoid making
       the process of
       defining handlers becoming too cumbersome,
-      e.g. [type] is just [typ] rather than [_type].
+      e.g. [type] becomes just [typ] rather than [_type].
   *)
 
   type _open = {
