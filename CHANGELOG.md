@@ -8,6 +8,10 @@
 
 - Adjusted code to be buildable on OCaml 4.08
 
+- Added handling for following syscalls:
+
+  - `socket`
+
 ## Stramon-lib 0.2.1
 
 - Documentation and metadata adjustment

@@ -99,7 +99,21 @@ end
 (** {1 Main monitoring facilities} *)
 
 module Syscall : sig
-  (** Syscall data and handler *)
+  (** Syscall data and handler
+
+      {2 Naming convention}
+
+      Due to reserved OCaml keywords, not all original
+      syscall names can be used as is.
+      Thus all syscall names here are prefixed with [_]
+      in the type names and variant names in [handler].
+
+      Field names within the individual record types
+      do not follow such naming scheme, however, to avoid making
+      the process of
+      defining handlers becoming too cumbersome,
+      e.g. [type] is just [typ] rather than [_type].
+  *)
 
   type _open = {
     path : string;
