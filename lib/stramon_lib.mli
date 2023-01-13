@@ -106,7 +106,8 @@ module Syscall : sig
       Due to reserved OCaml keywords, not all original
       syscall names can be used as is.
       Thus all syscall names here are prefixed with [_]
-      in the type names and variant names in [handler].
+      in the type names and variant names in [handler]
+      to ensure consistency for ease of looking up syscalls.
 
       Field names within the individual record types
       do not follow such naming scheme, however, to avoid making
