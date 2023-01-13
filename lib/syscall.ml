@@ -232,10 +232,28 @@ let _read_of_base (base : base) : _read option =
     )
   | _ -> None
 
+type _socket = {
+  domain : string;
+  typ : string list;
+  protocol : int;
+  errno : string option;
+  errno_msg : string option;
+}
+
+let _socket_of_base (base : base) : _socket option =
+  let errno = base.errno in
+  let errno_msg = base.errno_msg in
+  match base.args with
+  | [ Const domain; Flags typ; Int protocol ] -> (
+      Some { domain; typ; protocol; errno; errno_msg }
+    )
+  | _ -> None
+
 type 'a handler = [
   | `_open of 'a -> int -> _open -> 'a
   | `_openat of 'a -> int -> _openat -> 'a
   | `_read of 'a -> int -> _read -> 'a
+  | `_socket of 'a -> int -> _socket -> 'a
 ]
 
 type 'a base_handler = 'a -> int -> base -> 'a option
@@ -257,3 +275,8 @@ let base_handler_of_handler (f : 'a handler) : string * 'a base_handler =
                     let+ x = _read_of_base base in
                     f ctx pid x
                  ))
+  | `_socket f -> ("socket",
+                   (fun ctx pid base ->
+                      let+ x = _socket_of_base base in
+                      f ctx pid x
+                   ))

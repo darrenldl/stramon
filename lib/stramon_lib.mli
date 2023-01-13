@@ -122,10 +122,19 @@ module Syscall : sig
     errno_msg : string option;
   }
 
+  type _socket = {
+    domain : string;
+    typ : string list;
+    protocol : int;
+    errno : string option;
+    errno_msg : string option;
+  }
+
   type 'a handler = [
     | `_open of 'a -> int -> _open -> 'a
     | `_openat of 'a -> int -> _openat -> 'a
     | `_read of 'a -> int -> _read -> 'a
+    | `_socket of 'a -> int -> _socket -> 'a
   ]
   (** A handler receives the user-defined "context",
       process id, and finally the syscall specific data.
