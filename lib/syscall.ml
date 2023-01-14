@@ -17,6 +17,11 @@ type term =
   | Flags of string list
   | Array of term list
 
+let int_of_term (term : term) : int option =
+  match term with
+  | Int x -> Some x
+  | _ -> None
+
 type base = {
   name : string;
   args : term list;
@@ -189,12 +194,14 @@ type _open = {
   path : string;
   flags : string list;
   mode : string list;
+  ret : int;
 }
 
 let _open_of_base (base : base) : _open option =
+  let* ret = int_of_term base.ret in
   match base.args with
-  | [ String path; Flags flags ] -> Some { path; flags; mode = [] }
-  | [ String path; Flags flags; Flags mode ] -> Some { path; flags; mode }
+  | [ String path; Flags flags ] -> Some { path; flags; mode = []; ret }
+  | [ String path; Flags flags; Flags mode ] -> Some { path; flags; mode; ret }
   | _ -> None
 
 type _openat = {
@@ -249,34 +256,15 @@ let _socket_of_base (base : base) : _socket option =
     )
   | _ -> None
 
-type 'a handler = [
-  | `_open of 'a -> int -> _open -> 'a
-  | `_openat of 'a -> int -> _openat -> 'a
-  | `_read of 'a -> int -> _read -> 'a
-  | `_socket of 'a -> int -> _socket -> 'a
-]
+type _chown = {
+  path : string;
+  owner : int;
+  group : int;
+  ret : int;
+}
 
-type 'a base_handler = 'a -> int -> base -> 'a option
-
-let base_handler_of_handler (f : 'a handler) : string * 'a base_handler =
-  match f with
-  | `_open f -> ("open",
-                 (fun ctx pid base ->
-                    let+ x = _open_of_base base in
-                    f ctx pid x
-                 ))
-  | `_openat f -> ("openat",
-                   (fun ctx pid base ->
-                      let+ x = _openat_of_base base in
-                      f ctx pid x
-                   ))
-  | `_read f -> ("read",
-                 (fun ctx pid base ->
-                    let+ x = _read_of_base base in
-                    f ctx pid x
-                 ))
-  | `_socket f -> ("socket",
-                   (fun ctx pid base ->
-                      let+ x = _socket_of_base base in
-                      f ctx pid x
-                   ))
+let _chown_of_base (base : base) : _chown option =
+  let* ret = int_of_term base.ret in
+  match base.args with
+  | [ String path; Int owner; Int group ] -> Some { path; owner; group; ret }
+  | _ -> None

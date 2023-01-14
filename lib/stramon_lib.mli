@@ -120,6 +120,7 @@ module Syscall : sig
     path : string;
     flags : string list;
     mode : string list;
+    ret : int;
   }
 
   type _openat = {
@@ -145,11 +146,19 @@ module Syscall : sig
     errno_msg : string option;
   }
 
+  type _chown = {
+    path : string;
+    owner : int;
+    group : int;
+    ret : int;
+  }
+
   type 'a handler = [
     | `_open of 'a -> int -> _open -> 'a
     | `_openat of 'a -> int -> _openat -> 'a
     | `_read of 'a -> int -> _read -> 'a
     | `_socket of 'a -> int -> _socket -> 'a
+    | `_chown of 'a -> int -> _chown -> 'a
   ]
   (** A handler receives the user-defined "context",
       process id, and finally the syscall specific data.

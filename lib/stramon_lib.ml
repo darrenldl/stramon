@@ -8,7 +8,11 @@ module Utils = struct
   let kind_of_file = File_utils.kind_of_file
 end
 
-module Syscall = Syscall
+module Syscall = struct
+  include Syscall
+
+  include Syscall_utils
+end
 
 module Stats = Stats
 
