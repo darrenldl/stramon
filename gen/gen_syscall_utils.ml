@@ -2,8 +2,14 @@ let l = [
   "open";
   "openat";
   "read";
-  "socket";
   "chown";
+  "chmod";
+  "stat";
+  "socket";
+  "connect";
+  "listen";
+  "accept";
+  "bind";
 ]
 
 let output_path = Sys.argv.(1)
