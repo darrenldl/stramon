@@ -16,6 +16,7 @@ type term =
   | Const of string
   | Flags of string list
   | Array of term list
+  | App of string * term list
 
 let int_of_term (term : term) : int option =
   match term with
@@ -100,6 +101,12 @@ module Parsers = struct
            char ']' *>
            return (Array l)
           );
+          (ident_string >>= fun name ->
+           char '(' *>
+           sep_by_comma p >>= fun l ->
+           char ')' *>
+           return (App (name, l))
+          );
         ]
       )
 
@@ -169,6 +176,10 @@ let pp_term (formatter : Format.formatter) (x : term) =
       Fmt.pf formatter "<array:[%a]>"
         Fmt.(list ~sep:comma aux)
         l
+    | App (f, l) ->
+      Fmt.pf formatter "<app:%s(%a)>"
+        f
+        Fmt.(list ~sep:comma aux) l
   in
   aux formatter x
 
