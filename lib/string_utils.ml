@@ -68,7 +68,7 @@ let octal_of_string (s : string) : int option =
   let max_digit_count = Sys.int_size / 3 - 1 in
   let rec aux acc pos =
     if pos < 0 then
-      None
+      Some acc
     else (
       match s.[pos] with
       | '0' .. '7' as c -> (
@@ -79,7 +79,7 @@ let octal_of_string (s : string) : int option =
       | _ -> None
     )
   in
-  if len > max_digit_count then (
+  if len > max_digit_count || len = 0 then (
     None
   ) else (
     aux 0 (len - 1)
