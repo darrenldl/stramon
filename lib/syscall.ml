@@ -43,6 +43,13 @@ module Parsers = struct
     | None -> fail "invalid hex string"
     | Some s -> return s
 
+  let nat_zero_octal : int t =
+    char '0' *> num_string
+    >>= fun s ->
+    match String_utils.octal_of_string s with
+    | None -> fail "invalid octal number"
+    | Some s -> return s
+
   let decoded_p =
     non_angle_string *> char '<' *> hex_string_p non_angle_string >>= fun s ->
     char '>' *> return s
@@ -71,6 +78,7 @@ module Parsers = struct
         choice [
           (decoded_p >>= fun s -> return (String s));
           (string "0x" *> non_space_string >>| fun s -> Pointer s);
+          (nat_zero_octal >>| fun n -> Int n);
           (nat_zero >>| fun n -> Int n);
           (char '"' *> hex_string_p non_quote_string >>= fun s ->
            char '"' *> return (String s)
@@ -268,3 +276,39 @@ let _chown_of_base (base : base) : _chown option =
   match base.args with
   | [ String path; Int owner; Int group ] -> Some { path; owner; group; ret }
   | _ -> None
+
+type _chmod = {
+  path : string;
+  mode : int;
+  ret : int;
+}
+
+let _chmod_of_base (base : base) : _chmod option =
+  let* ret = int_of_term base.ret in
+  match base.args with
+  | [ String path; Int mode ] -> Some { path; mode; ret }
+  | _ -> None
+
+type _stat = {
+  path : string;
+  uid : int;
+  gid : int;
+  ret : int;
+}
+
+let _stat_of_base (base : base) : _stat option =
+  let* ret = int_of_term base.ret in
+  match base.args with
+  | [ String path; Struct status ] -> (
+      let* uid = List.assoc_opt "st_uid" status in
+      let* uid = int_of_term uid in
+      let* gid = List.assoc_opt "st_gid" status in
+      let* gid = int_of_term gid in
+      Some { path;
+             uid;
+             gid;
+             ret;
+           }
+    )
+  | _ -> None
+
