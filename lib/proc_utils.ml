@@ -10,46 +10,51 @@ let exec ~stdin ~stdout ~stderr cmd : (int * in_channel * (unit -> unit), string
     | Unix.Unix_error _ ->
       make_pipe ()
   in
-  let pipe_name = make_pipe () in
-  let wrapped_cmd =
-    [ "strace"
-    ; "-v"
-    ; "-xx"
-    ; "-f"
-    ; "-o"
-    ; pipe_name
-    ; "--decode-fds=path"
-    (* ; "-e"
-       ; "trace=%file,%process,%net" *)
-    ; "--"
-    ]
-    @
-    cmd
-  in
-  try
-    let pid =
-      Unix.(create_process "strace" (Array.of_list wrapped_cmd)) stdin stdout stderr
-    in
-    let pipe = open_in_bin pipe_name in
-    let cleanup = (fun () ->
-        (
-          try
-            Unix.kill Sys.sigkill pid
-          with _ -> ()
-        );
-        (
-          try
-            close_in pipe
-          with _ -> ()
-        );
-        (
-          try
-            Sys.remove pipe_name
-          with _ -> ()
-        );
-      )
-    in
-    Ok (pid, pipe, cleanup)
-  with
-  | Unix.Unix_error _ ->
-    Error "Failed to create strace process"
+  match cmd with
+  | [] ->
+    Error "No command provided"
+  | _ -> (
+      let pipe_name = make_pipe () in
+      let wrapped_cmd =
+        [ "strace"
+        ; "-v"
+        ; "-xx"
+        ; "-f"
+        ; "-o"
+        ; pipe_name
+        ; "--decode-fds=path"
+        (* ; "-e"
+           ; "trace=%file,%process,%net" *)
+        ; "--"
+        ]
+        @
+        cmd
+      in
+      try
+        let pid =
+          Unix.(create_process "strace" (Array.of_list wrapped_cmd)) stdin stdout stderr
+        in
+        let pipe = open_in_bin pipe_name in
+        let cleanup = (fun () ->
+            (
+              try
+                Unix.kill Sys.sigkill pid
+              with _ -> ()
+            );
+            (
+              try
+                close_in pipe
+              with _ -> ()
+            );
+            (
+              try
+                Sys.remove pipe_name
+              with _ -> ()
+            );
+          )
+        in
+        Ok (pid, pipe, cleanup)
+      with
+      | Unix.Unix_error _ ->
+        Error "Failed to create strace process"
+    )
