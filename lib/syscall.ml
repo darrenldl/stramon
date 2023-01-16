@@ -10,12 +10,12 @@ type blob = {
 
 type flag = [
   | `Const of string
-  | `Int of int
+  | `Int of int64
 ]
 
 type term = [
   | `String of string
-  | `Int of int
+  | `Int of int64
   | `Pointer of string
   | `Struct of (string * term) list
   | `Const of string
@@ -24,9 +24,19 @@ type term = [
   | `App of string * term list
 ]
 
-let int_of_term (term : term) : int option =
+let int64_of_term (term : term) : int64 option =
   match term with
   | `Int x -> Some x
+  | _ -> None
+
+let int_of_term (term : term) : int option =
+  match term with
+  | `Int x -> (
+      try
+        Some (Int64.to_int x)
+      with
+      | _ -> None
+    )
   | _ -> None
 
 type base = {
@@ -50,14 +60,14 @@ module Parsers = struct
     | None -> fail "invalid hex string"
     | Some s -> return s
 
-  let nat_zero_octal : int t =
+  let nat_zero_octal : int64 t =
     char '0' *> num_string
     >>= fun s ->
     match String_utils.octal_of_string s with
     | None -> fail "invalid octal number"
     | Some s -> return s
 
-  let nat_zero_hex : int t =
+  let nat_zero_hex : int64 t =
     string "0x" *> num_string
     >>= fun s ->
     match String_utils.hex_of_string s with
@@ -91,7 +101,7 @@ module Parsers = struct
     choice [
       (nat_zero_hex >>| fun n -> `Int n);
       (nat_zero_octal >>| fun n -> `Int n);
-      (nat_zero >>| fun n -> `Int n);
+      (nat_zero >>| fun n -> `Int (Int64.of_int n));
       (ident_string >>| fun x -> `Const x);
     ]
 
@@ -102,7 +112,7 @@ module Parsers = struct
           (string "0x" *> non_space_string >>| fun s -> `Pointer s);
           (nat_zero_hex >>| fun n -> `Int n);
           (nat_zero_octal >>| fun n -> `Int n);
-          (nat_zero >>| fun n -> `Int n);
+          (nat_zero >>| fun n -> `Int (Int64.of_int n));
           (char '"' *> hex_string_p non_quote_string >>= fun s ->
            char '"' *> return (`String s)
           );
@@ -178,7 +188,7 @@ let rec pp_term (formatter : Format.formatter) (x : term) =
   let rec aux formatter x =
     match x with
     | `String s -> Fmt.pf formatter "<string:%S>" s
-    | `Int x -> Fmt.pf formatter "<int:%d>" x
+    | `Int x -> Fmt.pf formatter "<int:%Ld>" x
     | `Pointer s -> Fmt.pf formatter "<ptr:%s>" s
     | `Struct l ->
       Fmt.pf formatter "<struct:{%a}>"
@@ -274,13 +284,11 @@ type _read = {
 let _read_of_base (base : base) : _read option =
   let errno = base.errno in
   let errno_msg = base.errno_msg in
-  match base.ret with
-  | `Int byte_count_read -> (
-      match base.args with
-      | [ `String path; _; `Int byte_count_requested ] ->
-        Some { path; byte_count_requested; byte_count_read; errno; errno_msg }
-      | _ -> None
-    )
+  let* byte_count_read = int_of_term base.ret in
+  match base.args with
+  | [ `String path; _; byte_count_requested ] ->
+    let* byte_count_requested = int_of_term byte_count_requested in
+    Some { path; byte_count_requested; byte_count_read; errno; errno_msg }
   | _ -> None
 
 type _socket = {
@@ -295,7 +303,8 @@ let _socket_of_base (base : base) : _socket option =
   let errno = base.errno in
   let errno_msg = base.errno_msg in
   match base.args with
-  | [ `Const domain; `Flags typ; `Int protocol ] -> (
+  | [ `Const domain; `Flags typ; protocol ] -> (
+      let* protocol = int_of_term protocol in
       Some { domain; typ; protocol; errno; errno_msg }
     )
   | _ -> None
@@ -310,7 +319,11 @@ type _chown = {
 let _chown_of_base (base : base) : _chown option =
   let* ret = int_of_term base.ret in
   match base.args with
-  | [ `String path; `Int owner; `Int group ] -> Some { path; owner; group; ret }
+  | [ `String path; owner; group ] -> (
+      let* owner = int_of_term owner in
+      let* group = int_of_term group in
+      Some { path; owner; group; ret }
+    )
   | _ -> None
 
 type _chmod = {
@@ -322,7 +335,10 @@ type _chmod = {
 let _chmod_of_base (base : base) : _chmod option =
   let* ret = int_of_term base.ret in
   match base.args with
-  | [ `String path; `Int mode ] -> Some { path; mode; ret }
+  | [ `String path; mode ] -> (
+      let* mode = int_of_term mode in
+      Some { path; mode; ret }
+    )
   | _ -> None
 
 type _stat = {

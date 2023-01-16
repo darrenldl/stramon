@@ -118,7 +118,7 @@ module Syscall : sig
 
   type flag = [
     | `Const of string
-    | `Int of int
+    | `Int of int64
   ]
 
   type _open = {

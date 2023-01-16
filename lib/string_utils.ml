@@ -62,19 +62,19 @@ let string_of_hex_string (s : string) : string option =
     in
     aux 0
 
-let octal_of_string (s : string) : int option =
+let octal_of_string (s : string) : int64 option =
   let len = String.length s in
   let max_pos = len - 1 in
-  let max_digit_count = Sys.int_size / 3 - 1 in
+  let max_digit_count = 64 / 3 in
   let rec aux acc pos =
     if pos < 0 then
       Some acc
     else (
       match s.[pos] with
       | '0' .. '7' as c -> (
-          let x = Char.code c - Char.code '0' in
-          let y = x lsl (3 * (max_pos - pos)) in
-          aux (acc lor y) (pos - 1)
+          let x = Int64.of_int (Char.code c - Char.code '0') in
+          let y = Int64.shift_left x (3 * (max_pos - pos)) in
+          aux (Int64.logor acc y) (pos - 1)
         )
       | _ -> None
     )
@@ -82,21 +82,22 @@ let octal_of_string (s : string) : int option =
   if len > max_digit_count || len = 0 then (
     None
   ) else (
-    aux 0 (len - 1)
+    aux 0L (len - 1)
   )
 
-let hex_of_string (s : string) : int option =
+let hex_of_string (s : string) : int64 option =
   let len = String.length s in
   let max_pos = len - 1 in
-  let max_digit_count = Sys.int_size / 4 - 1 in
+  let max_digit_count = 64 / 4 in
   let rec aux acc pos =
     if pos < 0 then
       Some acc
     else (
       match int_of_hex_digit s.[pos] with
       | Some x -> (
-          let y = x lsl (4 * (max_pos - pos)) in
-          aux (acc lor y) (pos - 1)
+          let x = Int64.of_int x in
+          let y = Int64.shift_left x (4 * (max_pos - pos)) in
+          aux (Int64.logor acc y) (pos - 1)
         )
       | _ -> None
     )
@@ -104,7 +105,7 @@ let hex_of_string (s : string) : int option =
   if len > max_digit_count || len = 0 then (
     None
   ) else (
-    aux 0 (len - 1)
+    aux 0L (len - 1)
   )
 
 let find_char ?(start = 0) (c : char) (s : string) : int option =
