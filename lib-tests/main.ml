@@ -3,6 +3,7 @@ let () =
     [
       ("Abs_path_tests.Alco", Abs_path_tests.Alco.suite);
       ("Path_trie_tests.Alco", Path_trie_tests.Alco.suite);
+      ("Util_tests.Alco", Util_tests.Alco.suite);
     ]
   in
   let qc_suites =
