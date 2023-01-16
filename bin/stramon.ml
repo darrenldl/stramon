@@ -32,21 +32,24 @@ let pp_file_date_time =
 let write_json (oc : out_channel) (json : Yojson.Basic.t) : unit =
   Yojson.Basic.to_channel oc json
 
-let _open_handler access (path : Stramon_lib.Abs_path.t) (flags : string list) =
+let _open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Syscall.flag list) =
   let l = List.filter (fun x ->
-      x = "O_RDONLY"
-      || x = "O_WRONLY"
-      || x = "O_RDWR"
+      match x with
+      | `Const "O_RDONLY"
+      | `Const "O_WRONLY"
+      | `Const "O_RDWR"
+        -> true
+      | _ -> false
     ) flags
   in
   match l with
-  | "O_RDONLY" :: _ -> (
+  | `Const "O_RDONLY" :: _ -> (
       Path_access.add path `R access
     )
-  | "O_WRONLY" :: _ -> (
+  | `Const "O_WRONLY" :: _ -> (
       Path_access.add path `Rw access
     )
-  | "O_RDWR" :: _ -> (
+  | `Const "O_RDWR" :: _ -> (
       Path_access.add path `Rw access
     )
   | _ -> access

@@ -116,18 +116,23 @@ module Syscall : sig
       e.g. [type] becomes just [typ] rather than [_type].
   *)
 
+  type flag = [
+    | `Const of string
+    | `Int of int
+  ]
+
   type _open = {
     path : string;
-    flags : string list;
-    mode : string list;
+    flags : flag list;
+    mode : flag list;
     ret : int;
   }
 
   type _openat = {
     relative_to : string;
     path : string;
-    flags : string list;
-    mode : string list;
+    flags : flag list;
+    mode : flag list;
   }
 
   type _read = {
@@ -140,7 +145,7 @@ module Syscall : sig
 
   type _socket = {
     domain : string;
-    typ : string list;
+    typ : flag list;
     protocol : int;
     errno : string option;
     errno_msg : string option;

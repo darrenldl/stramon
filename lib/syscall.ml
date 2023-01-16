@@ -8,19 +8,25 @@ type blob = {
   errno_msg : string option;
 }
 
-type term =
-  | String of string
-  | Int of int
-  | Pointer of string
-  | Struct of (string * term) list
-  | Const of string
-  | Flags of string list
-  | Array of term list
-  | App of string * term list
+type flag = [
+  | `Const of string
+  | `Int of int
+]
+
+type term = [
+  | `String of string
+  | `Int of int
+  | `Pointer of string
+  | `Struct of (string * term) list
+  | `Const of string
+  | `Flags of flag list
+  | `Array of term list
+  | `App of string * term list
+]
 
 let int_of_term (term : term) : int option =
   match term with
-  | Int x -> Some x
+  | `Int x -> Some x
   | _ -> None
 
 type base = {
@@ -51,6 +57,13 @@ module Parsers = struct
     | None -> fail "invalid octal number"
     | Some s -> return s
 
+  let nat_zero_hex : int t =
+    string "0x" *> num_string
+    >>= fun s ->
+    match String_utils.hex_of_string s with
+    | None -> fail "invalid hex number"
+    | Some s -> return s
+
   let decoded_p =
     non_angle_string *> char '<' *> hex_string_p non_angle_string >>= fun s ->
     char '>' *> return s
@@ -74,38 +87,47 @@ module Parsers = struct
       (return (ret, None, None))
     )
 
+  let flag_p : flag t =
+    choice [
+      (nat_zero_hex >>| fun n -> `Int n);
+      (nat_zero_octal >>| fun n -> `Int n);
+      (nat_zero >>| fun n -> `Int n);
+      (ident_string >>| fun x -> `Const x);
+    ]
+
   let term_p : term t =
     fix (fun p ->
         choice [
-          (decoded_p >>= fun s -> return (String s));
-          (string "0x" *> non_space_string >>| fun s -> Pointer s);
-          (nat_zero_octal >>| fun n -> Int n);
-          (nat_zero >>| fun n -> Int n);
+          (decoded_p >>= fun s -> return (`String s));
+          (string "0x" *> non_space_string >>| fun s -> `Pointer s);
+          (nat_zero_hex >>| fun n -> `Int n);
+          (nat_zero_octal >>| fun n -> `Int n);
+          (nat_zero >>| fun n -> `Int n);
           (char '"' *> hex_string_p non_quote_string >>= fun s ->
-           char '"' *> return (String s)
+           char '"' *> return (`String s)
           );
-          (sep_by1 (char '|') ident_string >>| fun l ->
+          (sep_by1 (char '|') flag_p >>| fun l ->
            match l with
-           | [x] -> Const x
-           | l -> Flags l
+           | [x] -> (x :> term)
+           | l -> `Flags l
           );
           (char '{' *> spaces *>
            sep_by_comma (ident_string >>= fun k ->
                          spaces *> char '=' *> spaces *>
                          p >>| fun v -> (k, v)) >>= fun l ->
            spaces *> char '}' *>
-           return (Struct l)
+           return (`Struct l)
           );
           (char '[' *>
            sep_by_comma p >>= fun l ->
            char ']' *>
-           return (Array l)
+           return (`Array l)
           );
           (ident_string >>= fun name ->
            char '(' *>
            sep_by_comma p >>= fun l ->
            char ')' *>
-           return (App (name, l))
+           return (`App (name, l))
           );
         ]
       )
@@ -152,36 +174,39 @@ let base_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : base optio
     | Ok ret ->
       Some { name; args; ret; errno; errno_msg }
 
-let pp_term (formatter : Format.formatter) (x : term) =
+let rec pp_term (formatter : Format.formatter) (x : term) =
   let rec aux formatter x =
     match x with
-    | String s -> Fmt.pf formatter "<string:%S>" s
-    | Int x -> Fmt.pf formatter "<int:%d>" x
-    | Pointer s -> Fmt.pf formatter "<ptr:%s>" s
-    | Struct l ->
+    | `String s -> Fmt.pf formatter "<string:%S>" s
+    | `Int x -> Fmt.pf formatter "<int:%d>" x
+    | `Pointer s -> Fmt.pf formatter "<ptr:%s>" s
+    | `Struct l ->
       Fmt.pf formatter "<struct:{%a}>"
         Fmt.(list (fun formatter (s, x) ->
             Fmt.pf formatter "%s=%a," s aux x
           ))
         l
-    | Const s ->
+    | `Const s ->
       Fmt.pf formatter "<const:%s>" s
-    | Flags l ->
+    | `Flags l ->
       Fmt.pf formatter "<flags:%a>"
         Fmt.(list
                ~sep:(fun formatter () -> Fmt.pf formatter "|")
-               string)
+               pp_flag)
         l
-    | Array l ->
+    | `Array l ->
       Fmt.pf formatter "<array:[%a]>"
         Fmt.(list ~sep:comma aux)
         l
-    | App (f, l) ->
+    | `App (f, l) ->
       Fmt.pf formatter "<app:%s(%a)>"
         f
         Fmt.(list ~sep:comma aux) l
   in
   aux formatter x
+
+and pp_flag formatter (x : flag) =
+  pp_term formatter (x :> term)
 
 let pp_blob (formatter : Format.formatter) (x : blob) : unit =
   Fmt.pf formatter "%s(%s) = %s %s %s"
@@ -211,30 +236,30 @@ let pp_base (formatter : Format.formatter) (x : base) : unit =
 
 type _open = {
   path : string;
-  flags : string list;
-  mode : string list;
+  flags : flag list;
+  mode : flag list;
   ret : int;
 }
 
 let _open_of_base (base : base) : _open option =
   let* ret = int_of_term base.ret in
   match base.args with
-  | [ String path; Flags flags ] -> Some { path; flags; mode = []; ret }
-  | [ String path; Flags flags; Flags mode ] -> Some { path; flags; mode; ret }
+  | [ `String path; `Flags flags ] -> Some { path; flags; mode = []; ret }
+  | [ `String path; `Flags flags; `Flags mode ] -> Some { path; flags; mode; ret }
   | _ -> None
 
 type _openat = {
   relative_to : string;
   path : string;
-  flags : string list;
-  mode : string list;
+  flags : flag list;
+  mode : flag list;
 }
 
 let _openat_of_base (base : base) : _openat option =
   match base.args with
-  | [ String relative_to; String path; Flags flags ] ->
+  | [ `String relative_to; `String path; `Flags flags ] ->
     Some { relative_to; path; flags; mode = [] }
-  | [ String relative_to; String path; Flags flags; Flags mode ] ->
+  | [ `String relative_to; `String path; `Flags flags; `Flags mode ] ->
     Some { relative_to; path; flags; mode }
   | _ -> None
 
@@ -250,9 +275,9 @@ let _read_of_base (base : base) : _read option =
   let errno = base.errno in
   let errno_msg = base.errno_msg in
   match base.ret with
-  | Int byte_count_read -> (
+  | `Int byte_count_read -> (
       match base.args with
-      | [ String path; _; Int byte_count_requested ] ->
+      | [ `String path; _; `Int byte_count_requested ] ->
         Some { path; byte_count_requested; byte_count_read; errno; errno_msg }
       | _ -> None
     )
@@ -260,7 +285,7 @@ let _read_of_base (base : base) : _read option =
 
 type _socket = {
   domain : string;
-  typ : string list;
+  typ : flag list;
   protocol : int;
   errno : string option;
   errno_msg : string option;
@@ -270,7 +295,7 @@ let _socket_of_base (base : base) : _socket option =
   let errno = base.errno in
   let errno_msg = base.errno_msg in
   match base.args with
-  | [ Const domain; Flags typ; Int protocol ] -> (
+  | [ `Const domain; `Flags typ; `Int protocol ] -> (
       Some { domain; typ; protocol; errno; errno_msg }
     )
   | _ -> None
@@ -285,7 +310,7 @@ type _chown = {
 let _chown_of_base (base : base) : _chown option =
   let* ret = int_of_term base.ret in
   match base.args with
-  | [ String path; Int owner; Int group ] -> Some { path; owner; group; ret }
+  | [ `String path; `Int owner; `Int group ] -> Some { path; owner; group; ret }
   | _ -> None
 
 type _chmod = {
@@ -297,7 +322,7 @@ type _chmod = {
 let _chmod_of_base (base : base) : _chmod option =
   let* ret = int_of_term base.ret in
   match base.args with
-  | [ String path; Int mode ] -> Some { path; mode; ret }
+  | [ `String path; `Int mode ] -> Some { path; mode; ret }
   | _ -> None
 
 type _stat = {
@@ -310,7 +335,7 @@ type _stat = {
 let _stat_of_base (base : base) : _stat option =
   let* ret = int_of_term base.ret in
   match base.args with
-  | [ String path; Struct status ] -> (
+  | [ `String path; `Struct status ] -> (
       let* uid = List.assoc_opt "st_uid" status in
       let* uid = int_of_term uid in
       let* gid = List.assoc_opt "st_gid" status in
