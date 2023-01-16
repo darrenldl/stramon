@@ -34,22 +34,27 @@ let int_of_hex_digit c =
   | 'a' .. 'f' -> Some (0xA + (Char.code c - Char.code 'a'))
   | _ -> None
 
-let string_of_hex_string (s : string) : string option =
+let string_of_hex_string ?(preamble_before_each_byte = "") (s : string) : string option =
   let s_len = String.length s in
-  if s_len mod 4 <> 0 then
+  let preamble_size = String.length preamble_before_each_byte in
+  let rec preamble_is_okay s offset pos =
+    pos >= preamble_size
+    || (s.[offset] = preamble_before_each_byte.[pos]
+        && preamble_is_okay s (offset + 1) (pos + 1))
+  in
+  let chunk_size = preamble_size + 2 in
+  if s_len mod chunk_size <> 0 then
     None
   else
-    let buf_len = s_len / 4 in
+    let buf_len = s_len / chunk_size in
     let buf = Bytes.make buf_len '\x00' in
     let rec aux i =
       if i >= buf_len then
         Some (Bytes.to_string buf)
       else (
-        let j = i * 4 in
-        if s.[j+0] = '\\'
-        && s.[j+1] = 'x'
-        then (
-          match int_of_hex_digit s.[j+2], int_of_hex_digit s.[j+3] with
+        let j = i * chunk_size in
+        if preamble_is_okay s j 0 then (
+          match int_of_hex_digit s.[j+preamble_size+0], int_of_hex_digit s.[j+preamble_size+1] with
           | Some a, Some b ->
             Bytes.set buf i (Char.chr (a * 0x10 + b));
             aux (succ i)

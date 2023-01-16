@@ -260,7 +260,7 @@ val monitor :
 module Utils : sig
   val kind_of_file : Abs_path.t -> Unix.file_kind option
 
-  val string_of_hex_string : string -> string option
+  val string_of_hex_string : ?preamble_before_each_byte:string -> string -> string option
 
   val hex_of_string : string -> int64 option
 
