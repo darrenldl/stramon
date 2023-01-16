@@ -6,6 +6,12 @@ module Path_trie_set = Path_trie_set
 
 module Utils = struct
   let kind_of_file = File_utils.kind_of_file
+
+  let string_of_hex_string = String_utils.string_of_hex_string
+
+  let hex_of_string = String_utils.hex_of_string
+
+  let octal_of_string = String_utils.octal_of_string
 end
 
 module Syscall = struct
