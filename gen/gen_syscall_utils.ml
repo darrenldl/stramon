@@ -6,10 +6,10 @@ let l = [
   "chmod";
   "stat";
   "socket";
-  (* "connect";
-     "listen";
-     "accept";
-     "bind"; *)
+  "connect";
+  "listen";
+  "accept";
+  "bind";
 ]
 
 let output_path = Sys.argv.(1)

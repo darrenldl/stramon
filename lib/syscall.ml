@@ -366,3 +366,50 @@ let _stat_of_base (base : base) : _stat option =
     )
   | _ -> None
 
+type _sockaddr_in = {
+  port : int;
+  addr : string;
+}
+
+type _sockaddr_in6 = {
+  port : int;
+  flow_info : int;
+  addr : string;
+  scope_id : int;
+}
+
+type _sockaddr =
+  | AF_INET of _sockaddr_in
+  | AF_INET6 of _sockaddr_in6
+
+type _connect = {
+  socket : string;
+  sa_family : string;
+  addr : _sockaddr;
+}
+
+let _connect_of_base (base : base) : _connect option =
+  None
+
+type _listen = {
+  socket : string;
+}
+
+let _listen_of_base (base : base) : _listen option =
+  None
+
+type _accept = {
+  socket : string;
+  addr : _sockaddr;
+}
+
+let _accept_of_base (base : base) : _accept option =
+  None
+
+type _bind = {
+  socket : string;
+  addr : _sockaddr;
+}
+
+let _bind_of_base (base : base) : _bind option =
+  None

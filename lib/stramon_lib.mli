@@ -108,6 +108,8 @@ module Syscall : sig
       Thus all syscall names here are prefixed with [_]
       in the type names and variant names in [handler]
       to ensure consistency for ease of looking up syscalls.
+      This extends to type names as well, e.g.
+      [sockaddr] becomes [_sockaddr].
 
       Field names within the individual record types
       do not follow such naming scheme, however, to avoid making
@@ -171,6 +173,42 @@ module Syscall : sig
     ret : int;
   }
 
+  type _sockaddr_in = {
+    port : int;
+    addr : string;
+  }
+
+  type _sockaddr_in6 = {
+    port : int;
+    flow_info : int;
+    addr : string;
+    scope_id : int;
+  }
+
+  type _sockaddr =
+    | AF_INET of _sockaddr_in
+    | AF_INET6 of _sockaddr_in6
+
+  type _connect = {
+    socket : string;
+    sa_family : string;
+    addr : _sockaddr;
+  }
+
+  type _listen = {
+    socket : string;
+  }
+
+  type _accept = {
+    socket : string;
+    addr : _sockaddr;
+  }
+
+  type _bind = {
+    socket : string;
+    addr : _sockaddr;
+  }
+
   type 'a handler = [
     | `_open of 'a -> int -> _open -> 'a
     | `_openat of 'a -> int -> _openat -> 'a
@@ -179,6 +217,11 @@ module Syscall : sig
     | `_chown of 'a -> int -> _chown -> 'a
     | `_chmod of 'a -> int -> _chmod -> 'a
     | `_stat of 'a -> int -> _stat -> 'a
+    | `_accept of 'a -> int -> _accept -> 'a
+    | `_connect of 'a -> int -> _connect -> 'a
+    | `_listen of 'a -> int -> _listen -> 'a
+    | `_open of 'a -> int -> _open -> 'a
+    | `_bind of 'a -> int -> _bind -> 'a
   ]
   (** A handler receives the user-defined "context",
       process id, and finally the syscall specific data.
