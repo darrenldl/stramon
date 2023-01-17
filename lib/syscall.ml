@@ -56,7 +56,9 @@ module Parsers = struct
 
   let hex_string_p p =
     p >>= fun s ->
-    match String_utils.string_of_hex_string s with
+    match String_utils.string_of_hex_string
+            ~preamble_before_each_byte:"\\x" s
+    with
     | None -> fail "invalid hex string"
     | Some s -> return s
 
