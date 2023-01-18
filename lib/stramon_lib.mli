@@ -191,7 +191,6 @@ module Syscall : sig
   ]
 
   type _connect = {
-    socket : string;
     sa_family : string;
     addr : _sockaddr;
   }
@@ -201,12 +200,10 @@ module Syscall : sig
   }
 
   type _accept = {
-    socket : string;
     addr : _sockaddr;
   }
 
   type _bind = {
-    socket : string;
     addr : _sockaddr;
   }
 

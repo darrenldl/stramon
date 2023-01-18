@@ -70,7 +70,7 @@ module Parsers = struct
     | Some s -> return s
 
   let nat_zero_hex : int64 t =
-    string "0x" *> num_string
+    string "0x" *> hex_num_string
     >>= fun s ->
     match String_utils.hex_of_string s with
     | None -> fail "invalid hex number"
@@ -113,11 +113,19 @@ module Parsers = struct
       (ident_string >>| fun x -> `Const x);
     ]
 
+  let pointer_p : string t =
+    choice [
+      (string "0x" >>= fun pre ->
+       hex_num_string >>| fun s -> pre ^ s);
+      (string "&" >>= fun pre ->
+       ident_string >>| fun s -> pre ^ s);
+    ]
+
   let term_p : term t =
     fix (fun p ->
         choice [
-          (decoded_p >>= fun s -> return (`String s));
-          (string "0x" *> non_space_string >>| fun s -> `Pointer s);
+          (decoded_p >>| fun s -> `String s);
+          (pointer_p >>| fun s -> `Pointer s);
           (int_p >>| fun n -> `Int n);
           (char '"' *> hex_string_p non_quote_string >>= fun s ->
            char '"' *> return (`String s)
@@ -390,13 +398,36 @@ type _sockaddr = [
 ]
 
 type _connect = {
-  socket : string;
   sa_family : string;
   addr : _sockaddr;
 }
 
 let _connect_of_base (base : base) : _connect option =
-  None
+  match base.args with
+  | [ `String _socket; `Struct sockaddr; `Int _protocol ] -> (
+      let* sa_family = List.assoc_opt "sa_family" sockaddr in
+      match sa_family with
+      | `String "AF_INET" -> (
+          let* port = List.assoc_opt "sin_port" sockaddr in
+          let* port =
+            match port with
+            | `App (_, [`Int x]) -> Some x
+            | _ -> None
+          in
+          let* addr = List.assoc_opt "sin_addr" sockaddr in
+          let* addr =
+            match addr with
+            | `App (_, [`String x]) -> Some x
+            | _ -> None
+          in
+          Some ({
+              sa_family = "AF_INET";
+              addr = `AF_INET { port = Int64.to_int port; addr };
+            })
+        )
+      | _ -> None
+    )
+  | _ -> None
 
 type _listen = {
   socket : string;
@@ -406,7 +437,6 @@ let _listen_of_base (base : base) : _listen option =
   None
 
 type _accept = {
-  socket : string;
   addr : _sockaddr;
 }
 
@@ -414,7 +444,6 @@ let _accept_of_base (base : base) : _accept option =
   None
 
 type _bind = {
-  socket : string;
   addr : _sockaddr;
 }
 

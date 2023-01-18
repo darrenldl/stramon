@@ -2,7 +2,7 @@ open Angstrom
 
 let is_letter c =
   match c with
-  | 'A'..'Z' -> true
+  | 'A'..'Z'
   | 'a'..'z' -> true
   | _ -> false
 
@@ -19,6 +19,13 @@ let is_not_space c =
 let is_digit c =
   match c with
   | '0'..'9' -> true
+  | _ -> false
+
+let is_hex_digit c =
+  match c with
+  | '0'..'9'
+  | 'A'..'F'
+  | 'a'..'f' -> true
   | _ -> false
 
 let digit : char t =
@@ -70,6 +77,9 @@ let skip_non_num_string ~end_markers =
 
 let num_string : string t =
   take_while1 is_digit
+
+let hex_num_string : string t =
+  take_while1 is_hex_digit
 
 let nat_zero : int t =
   num_string

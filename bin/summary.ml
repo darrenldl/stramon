@@ -18,5 +18,5 @@ let to_json (t : t) : Yojson.Basic.t =
   `Assoc
     [
       ("stats", json_of_stats t.stats);
-      ("file_access", Path_access.to_json t.access);
+      ("fs", Path_access.to_json t.access);
     ]
