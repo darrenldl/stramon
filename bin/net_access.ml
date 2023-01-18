@@ -1,3 +1,8 @@
+type mode = [
+  | `Connect
+  | `Bind
+]
+
 type net = {
   connect : int String_map.t;
   bind : int String_map.t;
@@ -18,4 +23,17 @@ let empty = {
   ipv6 = empty_net;
 }
 
-let add (addr : string) (port : int) (t : t) :
+let net_add (mode : mode) (addr : string) (port : int) (net : net) : net =
+  match mode with
+  | `Connect ->
+    { net with connect = String_map.add addr port net.connect }
+  | `Bind ->
+    { net with bind = String_map.add addr port net.connect }
+
+let add (mode : mode) (addr : Stramon_lib.Syscall.sockaddr) (t : t) : t =
+  let open Stramon_lib.Syscall in
+  match addr with
+  | `AF_INET { port; addr } ->
+      { t with ipv4 = net_add mode addr port t.ipv4 }
+  | `AF_INET6 { port; addr; _ } ->
+      { t with ipv6 = net_add mode addr port t.ipv6 }

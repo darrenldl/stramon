@@ -1,11 +1,13 @@
 type t = {
   stats : Stramon_lib.Stats.t;
-  access : Path_access.t;
+  fs : Fs_access.t;
+  net : Net_access.t;
 }
 
-let make (stats : Stramon_lib.Stats.t) access =
+let make (stats : Stramon_lib.Stats.t) fs net =
   { stats;
-    access;
+    fs;
+    net;
   }
 
 let json_of_stats (stats : Stramon_lib.Stats.t) : Yojson.Basic.t =
@@ -18,5 +20,5 @@ let to_json (t : t) : Yojson.Basic.t =
   `Assoc
     [
       ("stats", json_of_stats t.stats);
-      ("fs", Path_access.to_json t.access);
+      ("fs", Fs_access.to_json t.fs);
     ]

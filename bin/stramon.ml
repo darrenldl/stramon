@@ -44,27 +44,28 @@ let _open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Sy
   in
   match l with
   | `Const "O_RDONLY" :: _ -> (
-      Path_access.add path `R access
+      Fs_access.add path `R access
     )
   | `Const "O_WRONLY" :: _ -> (
-      Path_access.add path `Rw access
+      Fs_access.add path `Rw access
     )
   | `Const "O_RDWR" :: _ -> (
-      Path_access.add path `Rw access
+      Fs_access.add path `Rw access
     )
   | _ -> access
 
 let handlers =
   let open Stramon_lib in
   [
-    `open_ (fun access _pid ({ path; flags; mode = _ } : Syscall.open_) ->
+    `open_ (fun (fs, net) _pid ({ path; flags; mode = _ } : Syscall.open_) ->
         let path = Abs_path.of_string_exn path in
-        _open_handler access path flags
+        let fs = _open_handler fs path flags in
+        (fs, net)
       );
-    `openat (fun access _pid ({ relative_to; path; flags; mode = _ } : Syscall.openat) ->
+    `openat (fun (fs, net) _pid ({ relative_to; path; flags; mode = _ } : Syscall.openat) ->
         let cwd = Abs_path.of_string_exn relative_to in
         let path = Abs_path.of_string_exn ~cwd path in
-        _open_handler access path flags
+        _open_handler fs path flags
       );
     `socket (fun access _pid (_ : Syscall.socket) ->
         access
@@ -130,7 +131,13 @@ let () =
             exit 1
           )
       );
-      match Stramon_lib.monitor ~debug_level ~handlers ~init_ctx:Path_access.empty command with
+      match
+      Stramon_lib.monitor
+      ~debug_level
+      ~handlers
+      ~init_ctx:(Fs_access.empty, Net_access.empty)
+      command
+        with
       | Error msg -> (
           Printf.eprintf "Error: %s\n" msg;
           exit 2

@@ -1,4 +1,4 @@
-(** strace based process behavior monitoring library
+(** Process behavior monitoring library based on strace
 
     Stramon-lib is primarily designed to power Stramon,
     or to be used in similar fashion of process monitoring.
