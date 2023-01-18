@@ -168,7 +168,7 @@ module Parsers = struct
       )
 
   let args_p : term list t =
-    sep_by_comma term_p
+    spaces *> sep_by_comma term_p <* spaces
 
   let ret_p : term t =
     spaces *> term_p <* spaces
@@ -414,7 +414,7 @@ type connect = {
 let sockaddr_of_struct (l : (string * term) list) : sockaddr option =
   let* sa_family = List.assoc_opt "sa_family" l in
   match sa_family with
-  | `String "AF_INET" -> (
+  | `Const "AF_INET" -> (
       let* port = List.assoc_opt "sin_port" l in
       let* port =
         match port with
@@ -429,7 +429,7 @@ let sockaddr_of_struct (l : (string * term) list) : sockaddr option =
       in
       Some (`AF_INET { port = Int64.to_int port; addr })
     )
-  | `String "AF_INET6" -> (
+  | `Const "AF_INET6" -> (
       let* port = List.assoc_opt "sin6_port" l in
       let* port =
         match port with
