@@ -48,13 +48,13 @@ let process_line
       match Hashtbl.find_opt handler_db blob.name with
       | None -> ()
       | Some f -> (
-          (match debug_level with
-           | `None | `All -> ()
-           | `Registered -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_base syscall
-          );
           match Syscall.base_of_blob blob with
           | None -> ()
           | Some syscall -> (
+              (match debug_level with
+               | `None | `All -> ()
+               | `Registered -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_base syscall
+              );
               match f (Ctx.get_user_ctx ctx) pid syscall with
               | None -> ()
               | Some user_ctx ->
