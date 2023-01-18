@@ -32,7 +32,7 @@ let pp_file_date_time =
 let write_json (oc : out_channel) (json : Yojson.Basic.t) : unit =
   Yojson.Basic.to_channel oc json
 
-let _open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Syscall.literal list) =
+let open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Syscall.literal list) =
   let l = List.filter (fun x ->
       match x with
       | `Const "O_RDONLY"
@@ -59,28 +59,35 @@ let handlers =
   [
     `open_ (fun (fs, net) _pid ({ path; flags; mode = _ } : Syscall.open_) ->
         let path = Abs_path.of_string_exn path in
-        let fs = _open_handler fs path flags in
+        let fs = open_handler fs path flags in
         (fs, net)
       );
     `openat (fun (fs, net) _pid ({ relative_to; path; flags; mode = _ } : Syscall.openat) ->
         let cwd = Abs_path.of_string_exn relative_to in
         let path = Abs_path.of_string_exn ~cwd path in
-        _open_handler fs path flags
+        let fs = open_handler fs path flags in
+        (fs, net)
       );
-    `socket (fun access _pid (_ : Syscall.socket) ->
-        access
+    `socket (fun (fs, net) _pid (_ : Syscall.socket) ->
+        (fs, net)
       );
-    `connect (fun access _pid (_ : Syscall.connect) ->
-        access
+    `connect (fun (fs, net) _pid ({ socket = _; addr } : Syscall.connect) ->
+        let net = Net_access.add `Connect addr net in
+        (fs, net)
       );
-    `accept (fun access _pid (_ : Syscall.accept) ->
-        access
+    `accept (fun (fs, net) _pid ({ socket = _; addr } : Syscall.accept) ->
+        match addr with
+        | None -> (fs, net)
+        | Some addr ->
+          let net = Net_access.add `Accept addr net in
+          (fs, net)
       );
-    `bind (fun access _pid (_ : Syscall.bind) ->
-        access
+    `bind (fun (fs, net) _pid ({ socket = _; addr } : Syscall.bind) ->
+        let net = Net_access.add `Bind addr net in
+        (fs, net)
       );
-    `listen (fun access _pid (_ : Syscall.listen) ->
-        access
+    `listen (fun (fs, net) _pid (_ : Syscall.listen) ->
+        (fs, net)
       );
   ]
 
@@ -132,12 +139,12 @@ let () =
           )
       );
       match
-      Stramon_lib.monitor
-      ~debug_level
-      ~handlers
-      ~init_ctx:(Fs_access.empty, Net_access.empty)
-      command
-        with
+        Stramon_lib.monitor
+          ~debug_level
+          ~handlers
+          ~init_ctx:(Fs_access.empty, Net_access.empty)
+          command
+      with
       | Error msg -> (
           Printf.eprintf "Error: %s\n" msg;
           exit 2
@@ -147,8 +154,8 @@ let () =
             try
               CCIO.with_out output_path (fun oc ->
                   let stats = Stramon_lib.Monitor_result.stats res in
-                  let access = Stramon_lib.Monitor_result.ctx res in
-                  let summary = Summary.make stats access in
+                  let (fs, net) = Stramon_lib.Monitor_result.ctx res in
+                  let summary = Summary.make stats fs net in
                   let json = Summary.to_json summary in
                   write_json oc json
                 )
