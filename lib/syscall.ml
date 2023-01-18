@@ -8,7 +8,7 @@ type blob = {
   errno_msg : string option;
 }
 
-type flag = [
+type literal = [
   | `Const of string
   | `Int of int64
 ]
@@ -19,7 +19,7 @@ type term = [
   | `Pointer of string
   | `Struct of (string * term) list
   | `Const of string
-  | `Flags of flag list
+  | `Flags of literal list
   | `Array of term list
   | `App of string * term list
 ]
@@ -107,7 +107,7 @@ module Parsers = struct
       (char '-' *> nat_zero >>| fun n -> Int64.of_int (-n));
     ]
 
-  let flag_p : flag t =
+  let literal_p : literal t =
     choice [
       (int_p >>| fun x -> `Int x);
       (ident_string >>| fun x -> `Const x);
@@ -157,7 +157,7 @@ module Parsers = struct
            char ')' *>
            return (`App (name, l))
           );
-          (sep_by1 (char '|') flag_p >>| fun l ->
+          (sep_by1 (char '|') literal_p >>| fun l ->
            match l with
            | [x] -> (x :> term)
            | l -> `Flags l
@@ -225,7 +225,7 @@ let rec pp_term (formatter : Format.formatter) (x : term) =
       Fmt.pf formatter "<flags:%a>"
         Fmt.(list
                ~sep:(fun formatter () -> Fmt.pf formatter "|")
-               pp_flag)
+               pp_literal)
         l
     | `Array l ->
       Fmt.pf formatter "<array:[%a]>"
@@ -238,7 +238,7 @@ let rec pp_term (formatter : Format.formatter) (x : term) =
   in
   aux formatter x
 
-and pp_flag formatter (x : flag) =
+and pp_literal formatter (x : literal) =
   pp_term formatter (x :> term)
 
 let pp_blob (formatter : Format.formatter) (x : blob) : unit =
@@ -269,8 +269,8 @@ let pp_base (formatter : Format.formatter) (x : base) : unit =
 
 type _open = {
   path : string;
-  flags : flag list;
-  mode : flag list;
+  flags : literal list;
+  mode : literal list;
   ret : int;
 }
 
@@ -284,8 +284,8 @@ let _open_of_base (base : base) : _open option =
 type _openat = {
   relative_to : string;
   path : string;
-  flags : flag list;
-  mode : flag list;
+  flags : literal list;
+  mode : literal list;
 }
 
 let _openat_of_base (base : base) : _openat option =
@@ -316,7 +316,7 @@ let _read_of_base (base : base) : _read option =
 
 type _socket = {
   domain : string;
-  typ : flag list;
+  typ : literal list;
   protocol : string;
   errno : string option;
   errno_msg : string option;
