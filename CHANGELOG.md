@@ -12,6 +12,22 @@
 
   - `socket`
 
+  - `chown`
+
+  - `chmod`
+
+  - `stat`
+
+  - `accept`
+
+  - `connect`
+
+  - `listen`
+
+  - `open`
+
+  - `bind`
+
 ## Stramon-lib 0.2.1
 
 - Documentation and metadata adjustment
