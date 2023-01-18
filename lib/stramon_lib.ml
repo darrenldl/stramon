@@ -53,7 +53,7 @@ let process_line
               (match debug_level with
                | `None -> ()
                | `All | `Registered ->
-                 Fmt.epr "@[<v>Failed to parse blob: %a@,Error: %s@]"
+                 Fmt.epr "@[<v>Failed to parse blob: %a@,Error: %s@,@]"
                    Syscall.pp_blob blob msg
               );
             )
