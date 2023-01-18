@@ -131,9 +131,16 @@ module Parsers = struct
            char '"' *> return (`String s)
           );
           (char '{' *> spaces *>
-           sep_by_comma (ident_string >>= fun k ->
-                         spaces *> char '=' *> spaces *>
-                         p >>| fun v -> (k, v)) >>= fun l ->
+           sep_by_comma
+             ((ident_string >>=
+               fun k ->
+               spaces *> char '=' *> spaces *>
+               p >>| fun v -> (k, v)
+              )
+              <|>
+              (p >>| fun v -> ("", v))
+             )
+           >>= fun l ->
            spaces *> char '}' *>
            return (`Struct l)
           );
