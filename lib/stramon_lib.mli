@@ -191,7 +191,6 @@ module Syscall : sig
   ]
 
   type _connect = {
-    sa_family : string;
     addr : _sockaddr;
   }
 

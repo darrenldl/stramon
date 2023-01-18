@@ -407,65 +407,61 @@ type _sockaddr = [
 ]
 
 type _connect = {
-  sa_family : string;
   addr : _sockaddr;
 }
 
+let _sockaddr_of_struct (l : (string * term) list) : _sockaddr option =
+  let* sa_family = List.assoc_opt "sa_family" l in
+  match sa_family with
+  | `String "AF_INET" -> (
+      let* port = List.assoc_opt "sin_port" l in
+      let* port =
+        match port with
+        | `App (_, [`Int x]) -> Some x
+        | _ -> None
+      in
+      let* addr = List.assoc_opt "sin_addr" l in
+      let* addr =
+        match addr with
+        | `App (_, [`String x]) -> Some x
+        | _ -> None
+      in
+      Some (`AF_INET { port = Int64.to_int port; addr })
+    )
+  | `String "AF_INET6" -> (
+      let* port = List.assoc_opt "sin6_port" l in
+      let* port =
+        match port with
+        | `App (_, [`Int x]) -> Some x
+        | _ -> None
+      in
+      let* flow_info = List.assoc_opt "sin6_flowinfo" l in
+      let* flow_info =
+        match flow_info with
+        | `App (_, [`Int x]) -> Some x
+        | _ -> None
+      in
+      let* addr = List.assoc_opt "sin_addr" l in
+      let* addr =
+        match addr with
+        | `App (_, [`String x]) -> Some x
+        | _ -> None
+      in
+      let* scope_id = List.assoc_opt "sin6_scope_id" l in
+      let* scope_id = int64_of_term scope_id in
+      Some (`AF_INET6 { port = Int64.to_int port;
+                        flow_info;
+                        addr;
+                        scope_id;
+                      })
+    )
+  | _ -> None
+
 let _connect_of_base (base : base) : _connect option =
   match base.args with
-  | [ `String _socket; `Struct sockaddr; `Int _protocol ] -> (
-      let* sa_family = List.assoc_opt "sa_family" sockaddr in
-      match sa_family with
-      | `String "AF_INET" -> (
-          let* port = List.assoc_opt "sin_port" sockaddr in
-          let* port =
-            match port with
-            | `App (_, [`Int x]) -> Some x
-            | _ -> None
-          in
-          let* addr = List.assoc_opt "sin_addr" sockaddr in
-          let* addr =
-            match addr with
-            | `App (_, [`String x]) -> Some x
-            | _ -> None
-          in
-          Some ({
-              sa_family = "AF_INET";
-              addr = `AF_INET { port = Int64.to_int port; addr };
-            })
-        )
-      | `String "AF_INET6" -> (
-          let* port = List.assoc_opt "sin6_port" sockaddr in
-          let* port =
-            match port with
-            | `App (_, [`Int x]) -> Some x
-            | _ -> None
-          in
-          let* flow_info = List.assoc_opt "sin6_flowinfo" sockaddr in
-          let* flow_info =
-            match flow_info with
-            | `App (_, [`Int x]) -> Some x
-            | _ -> None
-          in
-          let* addr = List.assoc_opt "sin_addr" sockaddr in
-          let* addr =
-            match addr with
-            | `App (_, [`String x]) -> Some x
-            | _ -> None
-          in
-          let* scope_id = List.assoc_opt "sin6_scope_id" sockaddr in
-          let* scope_id = int64_of_term scope_id in
-          Some ({
-              sa_family = "AF_INET6";
-              addr = `AF_INET6 { port = Int64.to_int port;
-                                 flow_info;
-                                 addr;
-                                 scope_id;
-                               };
-            })
-        )
-      | _ -> None
-    )
+  | [ `String _socket; `Struct sockaddr; `Int _protocol ] ->
+    let* addr = _sockaddr_of_struct sockaddr in
+    Some { addr }
   | _ -> None
 
 type _accept = {
