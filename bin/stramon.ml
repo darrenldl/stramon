@@ -54,7 +54,7 @@ let open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Sys
     )
   | _ -> access
 
-let handlers =
+let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
   let open Stramon_lib in
   [
     `open_ (fun (fs, net) _pid ({ path; flags; mode = _ } : Syscall.open_) ->
@@ -66,6 +66,21 @@ let handlers =
         let cwd = Abs_path.of_string_exn relative_to in
         let path = Abs_path.of_string_exn ~cwd path in
         let fs = open_handler fs path flags in
+        (fs, net)
+      );
+    `chmod (fun (fs, net) _pid ({ path; _ } : Syscall.chmod) ->
+        let path = Abs_path.of_string_exn path in
+        let fs = Fs_access.add path `chmod fs in
+        (fs, net)
+      );
+    `chown (fun (fs, net) _pid ({ path; _ } : Syscall.chown) ->
+        let path = Abs_path.of_string_exn path in
+        let fs = Fs_access.add path `chown fs in
+        (fs, net)
+      );
+    `stat (fun (fs, net) _pid ({ path; _ } : Syscall.stat) ->
+        let path = Abs_path.of_string_exn path in
+        let fs = Fs_access.add path `stat fs in
         (fs, net)
       );
     `socket (fun (fs, net) _pid (_ : Syscall.socket) ->
