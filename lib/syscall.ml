@@ -122,11 +122,6 @@ module Parsers = struct
           (char '"' *> hex_string_p non_quote_string >>= fun s ->
            char '"' *> return (`String s)
           );
-          (sep_by1 (char '|') flag_p >>| fun l ->
-           match l with
-           | [x] -> (x :> term)
-           | l -> `Flags l
-          );
           (char '{' *> spaces *>
            sep_by_comma (ident_string >>= fun k ->
                          spaces *> char '=' *> spaces *>
@@ -146,6 +141,11 @@ module Parsers = struct
            sep_by_comma p >>= fun l ->
            char ')' *>
            return (`App (name, l))
+          );
+          (sep_by1 (char '|') flag_p >>| fun l ->
+           match l with
+           | [x] -> (x :> term)
+           | l -> `Flags l
           );
         ]
       )
