@@ -50,6 +50,7 @@ or to be used in similar fashion of process monitoring.
    dune
    (stramon-lib (>= "0.2.0"))
    (timedesc (>= "0.9.1"))
+   (containers (>= "3.6"))
    )
  (tags
   ("strace"
