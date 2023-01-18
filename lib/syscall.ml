@@ -200,8 +200,8 @@ let rec pp_term (formatter : Format.formatter) (x : term) =
     | `Pointer s -> Fmt.pf formatter "<ptr:%s>" s
     | `Struct l ->
       Fmt.pf formatter "<struct:{%a}>"
-        Fmt.(list (fun formatter (s, x) ->
-            Fmt.pf formatter "%s=%a," s aux x
+        Fmt.(list ~sep:comma (fun formatter (s, x) ->
+            Fmt.pf formatter "%s=%a" s aux x
           ))
         l
     | `Const s ->
