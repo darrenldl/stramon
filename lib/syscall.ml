@@ -131,7 +131,9 @@ module Parsers = struct
            return (`Struct l)
           );
           (char '[' *>
+           spaces *>
            sep_by_comma p >>= fun l ->
+           spaces *>
            char ']' *>
            return (`Array l)
           );
@@ -173,18 +175,18 @@ let blob_of_string (str : string) : blob option =
       in
       Some { name; arg_text; ret; errno; errno_msg }
 
-let base_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : base option =
+let base_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : (base, string) result =
   match
     Angstrom.(parse_string ~consume:Consume.All) Parsers.args_p arg_text
   with
-  | Error _ -> None
+  | Error msg -> Error msg
   | Ok args ->
     match
       Angstrom.(parse_string ~consume:Consume.All) Parsers.ret_p ret
     with
-    | Error _ -> None
+    | Error msg -> Error msg
     | Ok ret ->
-      Some { name; args; ret; errno; errno_msg }
+      Ok { name; args; ret; errno; errno_msg }
 
 let rec pp_term (formatter : Format.formatter) (x : term) =
   let rec aux formatter x =
@@ -296,7 +298,7 @@ let _read_of_base (base : base) : _read option =
 type _socket = {
   domain : string;
   typ : flag list;
-  protocol : int;
+  protocol : string;
   errno : string option;
   errno_msg : string option;
 }
@@ -305,10 +307,10 @@ let _socket_of_base (base : base) : _socket option =
   let errno = base.errno in
   let errno_msg = base.errno_msg in
   match base.args with
-  | [ `Const domain; `Flags typ; protocol ] -> (
-      let* protocol = int_of_term protocol in
-      Some { domain; typ; protocol; errno; errno_msg }
-    )
+  | [ `Const domain; `Flags typ; `Const protocol ] ->
+    Some { domain; typ; protocol; errno; errno_msg }
+  | [ `Const domain; `Const typ; `Const protocol ] ->
+    Some { domain; typ = [`Const typ]; protocol; errno; errno_msg }
   | _ -> None
 
 type _chown = {
@@ -378,9 +380,10 @@ type _sockaddr_in6 = {
   scope_id : int;
 }
 
-type _sockaddr =
-  | AF_INET of _sockaddr_in
-  | AF_INET6 of _sockaddr_in6
+type _sockaddr = [
+  | `AF_INET of _sockaddr_in
+  | `AF_INET6 of _sockaddr_in6
+]
 
 type _connect = {
   socket : string;

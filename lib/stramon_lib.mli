@@ -148,7 +148,7 @@ module Syscall : sig
   type _socket = {
     domain : string;
     typ : flag list;
-    protocol : int;
+    protocol : string;
     errno : string option;
     errno_msg : string option;
   }
@@ -185,9 +185,10 @@ module Syscall : sig
     scope_id : int;
   }
 
-  type _sockaddr =
-    | AF_INET of _sockaddr_in
-    | AF_INET6 of _sockaddr_in6
+  type _sockaddr = [
+    | `AF_INET of _sockaddr_in
+    | `AF_INET6 of _sockaddr_in6
+  ]
 
   type _connect = {
     socket : string;

@@ -36,11 +36,9 @@ let is_not_angle c =
   not (is_angle c)
 
 let non_angle_string =
-  take_while is_not_angle
+  take_while1 is_not_angle
 
-let any_string : string t = take_while (fun _ -> true)
-
-let take_space : string t = take_while is_space
+let any_string : string t = take_while1 (fun _ -> true)
 
 let optional_char target =
   peek_char
@@ -55,7 +53,7 @@ let optional_char target =
     )
 
 let ident_string : string t =
-  take_while (fun c ->
+  take_while1 (fun c ->
       is_letter c
       || is_digit c
       || c = '_'

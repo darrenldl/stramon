@@ -49,8 +49,15 @@ let process_line
       | None -> ()
       | Some f -> (
           match Syscall.base_of_blob blob with
-          | None -> ()
-          | Some syscall -> (
+          | Error msg -> (
+              (match debug_level with
+               | `None -> ()
+               | `All | `Registered ->
+                 Fmt.epr "@[<v>Failed to parse blob: %a@,Error: %s@]"
+                   Syscall.pp_blob blob msg
+              );
+            )
+          | Ok syscall -> (
               (match debug_level with
                | `None | `All -> ()
                | `Registered -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_base syscall
