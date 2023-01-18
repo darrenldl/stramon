@@ -475,7 +475,7 @@ let _accept_of_base (base : base) : _accept option =
   | [ `String socket; `Struct sockaddr ] ->
     let* addr = _sockaddr_of_struct sockaddr in
     Some { socket; addr = Some addr }
-  | [ `String socket ] ->
+  | [ `String socket; `Const "NULL"; `Const "NULL" ] ->
     Some { socket; addr = None }
   | _ -> None
 
