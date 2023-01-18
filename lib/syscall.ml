@@ -474,7 +474,7 @@ let _accept_of_base (base : base) : _accept option =
   match base.args with
   | [ `String socket; `Struct sockaddr ] ->
     let* addr = _sockaddr_of_struct sockaddr in
-    Some { socket; addr = Some addr }
+    Some ({ socket; addr = Some addr } : _accept)
   | [ `String socket; `Const "NULL"; `Const "NULL" ] ->
     Some { socket; addr = None }
   | _ -> None
@@ -488,7 +488,7 @@ let _bind_of_base (base : base) : _bind option =
   match base.args with
   | [ `String socket; `Struct sockaddr; `Int _protocol ] ->
     let* addr = _sockaddr_of_struct sockaddr in
-    Some { socket; addr }
+    Some ({ socket; addr } : _bind)
   | _ -> None
 
 type _listen = {
@@ -498,5 +498,5 @@ type _listen = {
 let _listen_of_base (base : base) : _listen option =
   match base.args with
   | [ `String socket; `Int _backlog ] ->
-    Some { socket }
+    Some ({ socket } : _listen)
   | _ -> None
