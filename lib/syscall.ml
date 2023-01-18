@@ -99,11 +99,17 @@ module Parsers = struct
       (return (ret, None, None))
     )
 
+  let int_p : int64 t =
+    choice [
+      nat_zero_hex;
+      nat_zero_octal;
+      (nat_zero >>| fun n -> Int64.of_int n);
+      (char '-' *> nat_zero >>| fun n -> Int64.of_int (-n));
+    ]
+
   let flag_p : flag t =
     choice [
-      (nat_zero_hex >>| fun n -> `Int n);
-      (nat_zero_octal >>| fun n -> `Int n);
-      (nat_zero >>| fun n -> `Int (Int64.of_int n));
+      (int_p >>| fun x -> `Int x);
       (ident_string >>| fun x -> `Const x);
     ]
 
@@ -112,9 +118,7 @@ module Parsers = struct
         choice [
           (decoded_p >>= fun s -> return (`String s));
           (string "0x" *> non_space_string >>| fun s -> `Pointer s);
-          (nat_zero_hex >>| fun n -> `Int n);
-          (nat_zero_octal >>| fun n -> `Int n);
-          (nat_zero >>| fun n -> `Int (Int64.of_int n));
+          (int_p >>| fun n -> `Int n);
           (char '"' *> hex_string_p non_quote_string >>= fun s ->
            char '"' *> return (`String s)
           );
