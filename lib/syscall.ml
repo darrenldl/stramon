@@ -468,13 +468,6 @@ let _connect_of_base (base : base) : _connect option =
     )
   | _ -> None
 
-type _listen = {
-  socket : string;
-}
-
-let _listen_of_base (base : base) : _listen option =
-  None
-
 type _accept = {
   addr : _sockaddr;
 }

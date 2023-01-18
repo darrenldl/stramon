@@ -7,7 +7,6 @@ let l = [
   "stat";
   "socket";
   "connect";
-  "listen";
   "accept";
   "bind";
 ]

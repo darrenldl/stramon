@@ -72,6 +72,9 @@ let handlers =
     `_connect (fun access _pid (_ : Syscall._connect) ->
         access
       );
+    `_connect (fun access _pid (_ : Syscall._connect) ->
+        access
+      );
   ]
 
 let () =

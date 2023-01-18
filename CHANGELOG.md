@@ -22,8 +22,6 @@
 
   - `connect`
 
-  - `listen`
-
   - `open`
 
   - `bind`

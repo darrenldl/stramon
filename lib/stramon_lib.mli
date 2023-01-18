@@ -195,10 +195,6 @@ module Syscall : sig
     addr : _sockaddr;
   }
 
-  type _listen = {
-    socket : string;
-  }
-
   type _accept = {
     addr : _sockaddr;
   }
@@ -217,7 +213,6 @@ module Syscall : sig
     | `_stat of 'a -> int -> _stat -> 'a
     | `_accept of 'a -> int -> _accept -> 'a
     | `_connect of 'a -> int -> _connect -> 'a
-    | `_listen of 'a -> int -> _listen -> 'a
     | `_open of 'a -> int -> _open -> 'a
     | `_bind of 'a -> int -> _bind -> 'a
   ]
