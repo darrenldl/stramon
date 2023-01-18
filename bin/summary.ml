@@ -21,4 +21,5 @@ let to_json (t : t) : Yojson.Basic.t =
     [
       ("stats", json_of_stats t.stats);
       ("fs", Fs_access.to_json t.fs);
+      ("net", Net_access.to_json t.net);
     ]
