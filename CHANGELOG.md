@@ -26,6 +26,8 @@
 
   - `bind`
 
+  - `listen`
+
 ## Stramon-lib 0.2.1
 
 - Documentation and metadata adjustment

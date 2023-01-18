@@ -407,6 +407,7 @@ type _sockaddr = [
 ]
 
 type _connect = {
+  socket : string;
   addr : _sockaddr;
 }
 
@@ -459,21 +460,43 @@ let _sockaddr_of_struct (l : (string * term) list) : _sockaddr option =
 
 let _connect_of_base (base : base) : _connect option =
   match base.args with
-  | [ `String _socket; `Struct sockaddr; `Int _protocol ] ->
+  | [ `String socket; `Struct sockaddr; `Int _protocol ] ->
     let* addr = _sockaddr_of_struct sockaddr in
-    Some { addr }
+    Some { socket; addr }
   | _ -> None
 
 type _accept = {
-  addr : _sockaddr;
+  socket : string;
+  addr : _sockaddr option;
 }
 
 let _accept_of_base (base : base) : _accept option =
-  None
+  match base.args with
+  | [ `String socket; `Struct sockaddr ] ->
+    let* addr = _sockaddr_of_struct sockaddr in
+    Some { socket; addr = Some addr }
+  | [ `String socket ] ->
+    Some { socket; addr = None }
+  | _ -> None
 
 type _bind = {
+  socket : string;
   addr : _sockaddr;
 }
 
 let _bind_of_base (base : base) : _bind option =
-  None
+  match base.args with
+  | [ `String socket; `Struct sockaddr; `Int _protocol ] ->
+    let* addr = _sockaddr_of_struct sockaddr in
+    Some { socket; addr }
+  | _ -> None
+
+type _listen = {
+  socket : string;
+}
+
+let _listen_of_base (base : base) : _listen option =
+  match base.args with
+  | [ `String socket ] ->
+    Some { socket }
+  | _ -> None

@@ -191,15 +191,22 @@ module Syscall : sig
   ]
 
   type _connect = {
+    socket : string;
     addr : _sockaddr;
   }
 
   type _accept = {
-    addr : _sockaddr;
+    socket : string;
+    addr : _sockaddr option;
   }
 
   type _bind = {
+    socket : string;
     addr : _sockaddr;
+  }
+
+  type _listen = {
+    socket : string;
   }
 
   type 'a handler = [
@@ -214,6 +221,7 @@ module Syscall : sig
     | `_connect of 'a -> int -> _connect -> 'a
     | `_open of 'a -> int -> _open -> 'a
     | `_bind of 'a -> int -> _bind -> 'a
+    | `_listen of 'a -> int -> _listen -> 'a
   ]
   (** A handler receives the user-defined "context",
       process id, and finally the syscall specific data.

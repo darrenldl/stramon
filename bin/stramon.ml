@@ -72,7 +72,13 @@ let handlers =
     `_connect (fun access _pid (_ : Syscall._connect) ->
         access
       );
-    `_connect (fun access _pid (_ : Syscall._connect) ->
+    `_accept (fun access _pid (_ : Syscall._accept) ->
+        access
+      );
+    `_bind (fun access _pid (_ : Syscall._bind) ->
+        access
+      );
+    `_listen (fun access _pid (_ : Syscall._listen) ->
         access
       );
   ]

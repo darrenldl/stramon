@@ -9,6 +9,7 @@ let l = [
   "connect";
   "accept";
   "bind";
+  "listen";
 ]
 
 let output_path = Sys.argv.(1)
