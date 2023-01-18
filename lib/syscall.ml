@@ -497,6 +497,6 @@ type _listen = {
 
 let _listen_of_base (base : base) : _listen option =
   match base.args with
-  | [ `String socket ] ->
+  | [ `String socket; `Int _backlog ] ->
     Some { socket }
   | _ -> None
