@@ -1,5 +1,5 @@
 let l = [
-  "open";
+  "open_";
   "openat";
   "read";
   "chown";
@@ -22,7 +22,7 @@ let () =
 
       Printf.fprintf oc "type 'a handler = [\n";
       List.iter (fun s ->
-          Printf.fprintf oc "| `_%s of 'a -> int -> _%s -> 'a\n" s s
+          Printf.fprintf oc "| `%s of 'a -> int -> %s -> 'a\n" s s
         ) l;
       Printf.fprintf oc "]\n\n";
 
@@ -32,12 +32,13 @@ let () =
       match f with
       |};
       List.iter (fun s ->
+          let s' = Option.value ~default:s @@ CCString.chop_suffix ~suf:"_" s in
           Printf.fprintf oc {|
-      | `_%s f -> ("%s",
+      | `%s f -> ("%s",
                    (fun ctx pid base ->
-                      let+ x = _%s_of_base base in
+                      let+ x = %s_of_base base in
                       f ctx pid x
                    ))
-      |} s s s;
+      |} s s' s';
         ) l;
     )

@@ -269,28 +269,28 @@ let pp_base (formatter : Format.formatter) (x : base) : unit =
      | Some x -> x
     )
 
-type _open = {
+type open_ = {
   path : string;
   flags : literal list;
   mode : literal list;
   ret : int;
 }
 
-let _open_of_base (base : base) : _open option =
+let open_of_base (base : base) : open_ option =
   let* ret = int_of_term base.ret in
   match base.args with
   | [ `String path; `Flags flags ] -> Some { path; flags; mode = []; ret }
   | [ `String path; `Flags flags; `Flags mode ] -> Some { path; flags; mode; ret }
   | _ -> None
 
-type _openat = {
+type openat = {
   relative_to : string;
   path : string;
   flags : literal list;
   mode : literal list;
 }
 
-let _openat_of_base (base : base) : _openat option =
+let openat_of_base (base : base) : openat option =
   match base.args with
   | [ `String relative_to; `String path; `Flags flags ] ->
     Some { relative_to; path; flags; mode = [] }
@@ -298,7 +298,7 @@ let _openat_of_base (base : base) : _openat option =
     Some { relative_to; path; flags; mode }
   | _ -> None
 
-type _read = {
+type read = {
   path : string;
   byte_count_requested : int;
   byte_count_read : int;
@@ -306,7 +306,7 @@ type _read = {
   errno_msg : string option;
 }
 
-let _read_of_base (base : base) : _read option =
+let read_of_base (base : base) : read option =
   let errno = base.errno in
   let errno_msg = base.errno_msg in
   let* byte_count_read = int_of_term base.ret in
@@ -316,7 +316,7 @@ let _read_of_base (base : base) : _read option =
     Some { path; byte_count_requested; byte_count_read; errno; errno_msg }
   | _ -> None
 
-type _socket = {
+type socket = {
   domain : string;
   typ : literal list;
   protocol : string;
@@ -324,7 +324,7 @@ type _socket = {
   errno_msg : string option;
 }
 
-let _socket_of_base (base : base) : _socket option =
+let socket_of_base (base : base) : socket option =
   let errno = base.errno in
   let errno_msg = base.errno_msg in
   match base.args with
@@ -334,14 +334,14 @@ let _socket_of_base (base : base) : _socket option =
     Some { domain; typ = [`Const typ]; protocol; errno; errno_msg }
   | _ -> None
 
-type _chown = {
+type chown = {
   path : string;
   owner : int;
   group : int;
   ret : int;
 }
 
-let _chown_of_base (base : base) : _chown option =
+let chown_of_base (base : base) : chown option =
   let* ret = int_of_term base.ret in
   match base.args with
   | [ `String path; owner; group ] -> (
@@ -351,13 +351,13 @@ let _chown_of_base (base : base) : _chown option =
     )
   | _ -> None
 
-type _chmod = {
+type chmod = {
   path : string;
   mode : int;
   ret : int;
 }
 
-let _chmod_of_base (base : base) : _chmod option =
+let chmod_of_base (base : base) : chmod option =
   let* ret = int_of_term base.ret in
   match base.args with
   | [ `String path; mode ] -> (
@@ -366,14 +366,14 @@ let _chmod_of_base (base : base) : _chmod option =
     )
   | _ -> None
 
-type _stat = {
+type stat = {
   path : string;
   uid : int;
   gid : int;
   ret : int;
 }
 
-let _stat_of_base (base : base) : _stat option =
+let stat_of_base (base : base) : stat option =
   let* ret = int_of_term base.ret in
   match base.args with
   | [ `String path; `Struct status ] -> (
@@ -389,29 +389,29 @@ let _stat_of_base (base : base) : _stat option =
     )
   | _ -> None
 
-type _sockaddr_in = {
+type sockaddr_in = {
   port : int;
   addr : string;
 }
 
-type _sockaddr_in6 = {
+type sockaddr_in6 = {
   port : int;
   flow_info : int64;
   addr : string;
   scope_id : int64;
 }
 
-type _sockaddr = [
-  | `AF_INET of _sockaddr_in
-  | `AF_INET6 of _sockaddr_in6
+type sockaddr = [
+  | `AF_INET of sockaddr_in
+  | `AF_INET6 of sockaddr_in6
 ]
 
-type _connect = {
+type connect = {
   socket : string;
-  addr : _sockaddr;
+  addr : sockaddr;
 }
 
-let _sockaddr_of_struct (l : (string * term) list) : _sockaddr option =
+let sockaddr_of_struct (l : (string * term) list) : sockaddr option =
   let* sa_family = List.assoc_opt "sa_family" l in
   match sa_family with
   | `String "AF_INET" -> (
@@ -458,45 +458,45 @@ let _sockaddr_of_struct (l : (string * term) list) : _sockaddr option =
     )
   | _ -> None
 
-let _connect_of_base (base : base) : _connect option =
+let connect_of_base (base : base) : connect option =
   match base.args with
   | [ `String socket; `Struct sockaddr; `Int _protocol ] ->
-    let* addr = _sockaddr_of_struct sockaddr in
+    let* addr = sockaddr_of_struct sockaddr in
     Some { socket; addr }
   | _ -> None
 
-type _accept = {
+type accept = {
   socket : string;
-  addr : _sockaddr option;
+  addr : sockaddr option;
 }
 
-let _accept_of_base (base : base) : _accept option =
+let accept_of_base (base : base) : accept option =
   match base.args with
   | [ `String socket; `Struct sockaddr ] ->
-    let* addr = _sockaddr_of_struct sockaddr in
-    Some ({ socket; addr = Some addr } : _accept)
+    let* addr = sockaddr_of_struct sockaddr in
+    Some ({ socket; addr = Some addr } : accept)
   | [ `String socket; `Const "NULL"; `Const "NULL" ] ->
     Some { socket; addr = None }
   | _ -> None
 
-type _bind = {
+type bind = {
   socket : string;
-  addr : _sockaddr;
+  addr : sockaddr;
 }
 
-let _bind_of_base (base : base) : _bind option =
+let bind_of_base (base : base) : bind option =
   match base.args with
   | [ `String socket; `Struct sockaddr; `Int _protocol ] ->
-    let* addr = _sockaddr_of_struct sockaddr in
-    Some ({ socket; addr } : _bind)
+    let* addr = sockaddr_of_struct sockaddr in
+    Some ({ socket; addr } : bind)
   | _ -> None
 
-type _listen = {
+type listen = {
   socket : string;
 }
 
-let _listen_of_base (base : base) : _listen option =
+let listen_of_base (base : base) : listen option =
   match base.args with
   | [ `String socket; `Int _backlog ] ->
-    Some ({ socket } : _listen)
+    Some ({ socket } : listen)
   | _ -> None

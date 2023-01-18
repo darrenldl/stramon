@@ -57,28 +57,28 @@ let _open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Sy
 let handlers =
   let open Stramon_lib in
   [
-    `_open (fun access _pid ({ path; flags; mode = _ } : Syscall._open) ->
+    `open_ (fun access _pid ({ path; flags; mode = _ } : Syscall.open_) ->
         let path = Abs_path.of_string_exn path in
         _open_handler access path flags
       );
-    `_openat (fun access _pid ({ relative_to; path; flags; mode = _ } : Syscall._openat) ->
+    `openat (fun access _pid ({ relative_to; path; flags; mode = _ } : Syscall.openat) ->
         let cwd = Abs_path.of_string_exn relative_to in
         let path = Abs_path.of_string_exn ~cwd path in
         _open_handler access path flags
       );
-    `_socket (fun access _pid (_ : Syscall._socket) ->
+    `socket (fun access _pid (_ : Syscall.socket) ->
         access
       );
-    `_connect (fun access _pid (_ : Syscall._connect) ->
+    `connect (fun access _pid (_ : Syscall.connect) ->
         access
       );
-    `_accept (fun access _pid (_ : Syscall._accept) ->
+    `accept (fun access _pid (_ : Syscall.accept) ->
         access
       );
-    `_bind (fun access _pid (_ : Syscall._bind) ->
+    `bind (fun access _pid (_ : Syscall.bind) ->
         access
       );
-    `_listen (fun access _pid (_ : Syscall._listen) ->
+    `listen (fun access _pid (_ : Syscall.listen) ->
         access
       );
   ]

@@ -103,19 +103,16 @@ module Syscall : sig
 
       {2 Naming convention}
 
-      Due to reserved OCaml keywords, not all original
-      syscall names can be used as is.
-      Thus all syscall names here are prefixed with [_]
-      in the type names and variant names in [handler]
-      to ensure consistency for ease of looking up syscalls.
-      This extends to type names as well, e.g.
-      [sockaddr] becomes [_sockaddr].
+      Syscall names which collide with reserved
+      OCaml keywords are suffixed with [_],
+      e.g. [open] becomes [open_],
+      unless collision does not occur due
+      to name being part of a longer name,
+      e.g. part of a longer function name.
 
-      Field names within the individual record types
-      do not follow such naming scheme, however, to avoid making
-      the process of
-      defining handlers becoming too cumbersome,
-      e.g. [type] becomes just [typ] rather than [_type].
+      This is to ensure easy lookup
+      as the original syscall names remain
+      searchable.
   *)
 
   type literal = [
@@ -123,21 +120,21 @@ module Syscall : sig
     | `Int of int64
   ]
 
-  type _open = {
+  type open_ = {
     path : string;
     flags : literal list;
     mode : literal list;
     ret : int;
   }
 
-  type _openat = {
+  type openat = {
     relative_to : string;
     path : string;
     flags : literal list;
     mode : literal list;
   }
 
-  type _read = {
+  type read = {
     path : string;
     byte_count_requested : int;
     byte_count_read : int;
@@ -145,7 +142,7 @@ module Syscall : sig
     errno_msg : string option;
   }
 
-  type _socket = {
+  type socket = {
     domain : string;
     typ : literal list;
     protocol : string;
@@ -153,75 +150,74 @@ module Syscall : sig
     errno_msg : string option;
   }
 
-  type _chown = {
+  type chown = {
     path : string;
     owner : int;
     group : int;
     ret : int;
   }
 
-  type _chmod = {
+  type chmod = {
     path : string;
     mode : int;
     ret : int;
   }
 
-  type _stat = {
+  type stat = {
     path : string;
     uid : int;
     gid : int;
     ret : int;
   }
 
-  type _sockaddr_in = {
+  type sockaddr_in = {
     port : int;
     addr : string;
   }
 
-  type _sockaddr_in6 = {
+  type sockaddr_in6 = {
     port : int;
     flow_info : int64;
     addr : string;
     scope_id : int64;
   }
 
-  type _sockaddr = [
-    | `AF_INET of _sockaddr_in
-    | `AF_INET6 of _sockaddr_in6
+  type sockaddr = [
+    | `AF_INET of sockaddr_in
+    | `AF_INET6 of sockaddr_in6
   ]
 
-  type _connect = {
+  type connect = {
     socket : string;
-    addr : _sockaddr;
+    addr : sockaddr;
   }
 
-  type _accept = {
+  type accept = {
     socket : string;
-    addr : _sockaddr option;
+    addr : sockaddr option;
   }
 
-  type _bind = {
+  type bind = {
     socket : string;
-    addr : _sockaddr;
+    addr : sockaddr;
   }
 
-  type _listen = {
+  type listen = {
     socket : string;
   }
 
   type 'a handler = [
-    | `_open of 'a -> int -> _open -> 'a
-    | `_openat of 'a -> int -> _openat -> 'a
-    | `_read of 'a -> int -> _read -> 'a
-    | `_socket of 'a -> int -> _socket -> 'a
-    | `_chown of 'a -> int -> _chown -> 'a
-    | `_chmod of 'a -> int -> _chmod -> 'a
-    | `_stat of 'a -> int -> _stat -> 'a
-    | `_accept of 'a -> int -> _accept -> 'a
-    | `_connect of 'a -> int -> _connect -> 'a
-    | `_open of 'a -> int -> _open -> 'a
-    | `_bind of 'a -> int -> _bind -> 'a
-    | `_listen of 'a -> int -> _listen -> 'a
+    | `open_ of 'a -> int -> open_ -> 'a
+    | `openat of 'a -> int -> openat -> 'a
+    | `read of 'a -> int -> read -> 'a
+    | `socket of 'a -> int -> socket -> 'a
+    | `chown of 'a -> int -> chown -> 'a
+    | `chmod of 'a -> int -> chmod -> 'a
+    | `stat of 'a -> int -> stat -> 'a
+    | `accept of 'a -> int -> accept -> 'a
+    | `connect of 'a -> int -> connect -> 'a
+    | `bind of 'a -> int -> bind -> 'a
+    | `listen of 'a -> int -> listen -> 'a
   ]
   (** A handler receives the user-defined "context",
       process id, and finally the syscall specific data.
