@@ -29,14 +29,16 @@ let int64_of_term (term : term) : int64 option =
   | `Int x -> Some x
   | _ -> None
 
-let int_of_term (term : term) : int option =
+let int64_of_term (term : term) : int64 option =
   match term with
-  | `Int x -> (
-      try
-        Some (Int64.to_int x)
-      with
-      | _ -> None
-    )
+  | `Int x -> Some x
+  | _ -> None
+
+let int_of_term (term : term) : int option =
+  let* x = int64_of_term term in
+  try
+    Some (Int64.to_int x)
+  with
   | _ -> None
 
 type base = {
@@ -62,14 +64,14 @@ module Parsers = struct
     | None -> fail "invalid hex string"
     | Some s -> return s
 
-  let nat_zero_octal : int64 t =
+  let nat_zero_int64_octal : int64 t =
     char '0' *> num_string
     >>= fun s ->
     match String_utils.octal_of_string s with
     | None -> fail "invalid octal number"
     | Some s -> return s
 
-  let nat_zero_hex : int64 t =
+  let nat_zero_int64_hex : int64 t =
     string "0x" *> hex_num_string
     >>= fun s ->
     match String_utils.hex_of_string s with
@@ -101,10 +103,10 @@ module Parsers = struct
 
   let int_p : int64 t =
     choice [
-      nat_zero_hex;
-      nat_zero_octal;
-      (nat_zero >>| fun n -> Int64.of_int n);
-      (char '-' *> nat_zero >>| fun n -> Int64.of_int (-n));
+      nat_zero_int64_hex;
+      nat_zero_int64_octal;
+      nat_zero_int64;
+      (char '-' *> nat_zero_int64 >>| fun n -> Int64.neg n);
     ]
 
   let literal_p : literal t =
@@ -394,9 +396,9 @@ type _sockaddr_in = {
 
 type _sockaddr_in6 = {
   port : int;
-  flow_info : int;
+  flow_info : int64;
   addr : string;
-  scope_id : int;
+  scope_id : int64;
 }
 
 type _sockaddr = [
@@ -430,6 +432,36 @@ let _connect_of_base (base : base) : _connect option =
           Some ({
               sa_family = "AF_INET";
               addr = `AF_INET { port = Int64.to_int port; addr };
+            })
+        )
+      | `String "AF_INET6" -> (
+          let* port = List.assoc_opt "sin6_port" sockaddr in
+          let* port =
+            match port with
+            | `App (_, [`Int x]) -> Some x
+            | _ -> None
+          in
+          let* flow_info = List.assoc_opt "sin6_flowinfo" sockaddr in
+          let* flow_info =
+            match flow_info with
+            | `App (_, [`Int x]) -> Some x
+            | _ -> None
+          in
+          let* addr = List.assoc_opt "sin_addr" sockaddr in
+          let* addr =
+            match addr with
+            | `App (_, [`String x]) -> Some x
+            | _ -> None
+          in
+          let* scope_id = List.assoc_opt "sin6_scope_id" sockaddr in
+          let* scope_id = int64_of_term scope_id in
+          Some ({
+              sa_family = "AF_INET6";
+              addr = `AF_INET6 { port = Int64.to_int port;
+                                 flow_info;
+                                 addr;
+                                 scope_id;
+                               };
             })
         )
       | _ -> None

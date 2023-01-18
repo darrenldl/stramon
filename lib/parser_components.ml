@@ -87,6 +87,12 @@ let nat_zero : int t =
   try return (int_of_string s)
   with _ -> fail (Printf.sprintf "Integer %s is out of range" s)
 
+let nat_zero_int64 : int64 t =
+  num_string
+  >>= fun s ->
+  try return (Int64.of_string s)
+  with _ -> fail (Printf.sprintf "Integer %s is out of range" s)
+
 let float_non_neg : float t =
   take_while1 is_digit
   >>= fun x ->

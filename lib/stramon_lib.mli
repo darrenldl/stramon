@@ -180,9 +180,9 @@ module Syscall : sig
 
   type _sockaddr_in6 = {
     port : int;
-    flow_info : int;
+    flow_info : int64;
     addr : string;
-    scope_id : int;
+    scope_id : int64;
   }
 
   type _sockaddr = [
