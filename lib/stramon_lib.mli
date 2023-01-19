@@ -157,10 +157,27 @@ module Syscall : sig
     ret : int;
   }
 
+  type fchownat = {
+    relative_to : string;
+    path : string;
+    owner : int;
+    group : int;
+    ret : int;
+    flags : literal list;
+  }
+
   type chmod = {
     path : string;
     mode : int;
     ret : int;
+  }
+
+  type fchmodat = {
+    relative_to : string;
+    path : string;
+    mode : int;
+    ret : int;
+    flags : literal list;
   }
 
   type stat = {
@@ -168,6 +185,15 @@ module Syscall : sig
     uid : int;
     gid : int;
     ret : int;
+  }
+
+  type fstatat = {
+    relative_to : string;
+    path : string;
+    uid : int;
+    gid : int;
+    ret : int;
+    flags : literal list;
   }
 
   type sockaddr_in = {
@@ -212,8 +238,17 @@ module Syscall : sig
     | `read of 'a -> int -> read -> 'a
     | `socket of 'a -> int -> socket -> 'a
     | `chown of 'a -> int -> chown -> 'a
+    | `fchown of 'a -> int -> chown -> 'a
+    | `lchown of 'a -> int -> chown -> 'a
+    | `fchownat of 'a -> int -> fchownat -> 'a
     | `chmod of 'a -> int -> chmod -> 'a
+    | `fchmod of 'a -> int -> chmod -> 'a
+    | `lchmod of 'a -> int -> chmod -> 'a
+    | `fchmodat of 'a -> int -> fchmodat -> 'a
     | `stat of 'a -> int -> stat -> 'a
+    | `fstat of 'a -> int -> stat -> 'a
+    | `lstat of 'a -> int -> stat -> 'a
+    | `fstatat of 'a -> int -> fstatat -> 'a
     | `accept of 'a -> int -> accept -> 'a
     | `connect of 'a -> int -> connect -> 'a
     | `bind of 'a -> int -> bind -> 'a

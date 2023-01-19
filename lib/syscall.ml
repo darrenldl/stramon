@@ -351,6 +351,31 @@ let chown_of_base (base : base) : chown option =
     )
   | _ -> None
 
+type fchownat = {
+  relative_to : string;
+  path : string;
+  owner : int;
+  group : int;
+  ret : int;
+  flags : literal list;
+}
+
+let fchownat_of_base (base : base) : fchownat option =
+  let* ret = int_of_term base.ret in
+  match base.args with
+  | [ `String relative_to; `String path; owner; group; `Flags flags ] -> (
+      let* owner = int_of_term owner in
+      let* group = int_of_term group in
+      Some { relative_to;
+             path;
+             owner;
+             group;
+             ret;
+             flags;
+           }
+    )
+  | _ -> None
+
 type chmod = {
   path : string;
   mode : int;
@@ -363,6 +388,23 @@ let chmod_of_base (base : base) : chmod option =
   | [ `String path; mode ] -> (
       let* mode = int_of_term mode in
       Some { path; mode; ret }
+    )
+  | _ -> None
+
+type fchmodat = {
+  relative_to : string;
+  path : string;
+  mode : int;
+  ret : int;
+  flags : literal list;
+}
+
+let fchmodat_of_base (base : base) : fchmodat option =
+  let* ret = int_of_term base.ret in
+  match base.args with
+  | [ `String relative_to; `String path; mode; `Flags flags ] -> (
+      let* mode = int_of_term mode in
+      Some { relative_to; path; mode; ret; flags }
     )
   | _ -> None
 
@@ -385,6 +427,33 @@ let stat_of_base (base : base) : stat option =
              uid;
              gid;
              ret;
+           }
+    )
+  | _ -> None
+
+type fstatat = {
+  relative_to : string;
+  path : string;
+  uid : int;
+  gid : int;
+  ret : int;
+  flags : literal list;
+}
+
+let fstatat_of_base (base : base) : fstatat option =
+  let* ret = int_of_term base.ret in
+  match base.args with
+  | [ `String relative_to; `String path; `Struct status; `Flags flags ] -> (
+      let* uid = List.assoc_opt "st_uid" status in
+      let* uid = int_of_term uid in
+      let* gid = List.assoc_opt "st_gid" status in
+      let* gid = int_of_term gid in
+      Some { relative_to;
+             path;
+             uid;
+             gid;
+             ret;
+             flags;
            }
     )
   | _ -> None

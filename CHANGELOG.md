@@ -11,21 +11,22 @@
 - Added handling for following syscalls:
 
   - `socket`
-
   - `chown`
-
+  - `fchown`
+  - `lchown`
+  - `fchownat`
   - `chmod`
-
+  - `fchmod`
+  - `lchmod`
+  - `fchmodat`
   - `stat`
-
+  - `fstat`
+  - `lstat`
+  - `fstatat`
   - `accept`
-
   - `connect`
-
   - `open`
-
   - `bind`
-
   - `listen`
 
 ## Stramon-lib 0.2.1
