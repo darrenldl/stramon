@@ -1,4 +1,4 @@
-let exec ~stdin ~stdout ~stderr cmd : (int * in_channel * (unit -> unit), string) result =
+let exec ~stdin ~stdout ~stderr ~syscalls cmd : (int * in_channel * (unit -> unit), string) result =
   let rec make_pipe () =
     let pipe_name =
       Fmt.str "/tmp/stramon-%d" (Random.int 1_000_000)
@@ -22,9 +22,9 @@ let exec ~stdin ~stdout ~stderr cmd : (int * in_channel * (unit -> unit), string
         ; "-f"
         ; "-o"
         ; pipe_name
+        ; "--seccomp-bpf"
         ; "--decode-fds=path"
-        (* ; "-e"
-           ; "trace=%file,%process,%net" *)
+        ; Printf.sprintf "--trace=%s" (String.concat "," syscalls)
         ; "--"
         ]
         @

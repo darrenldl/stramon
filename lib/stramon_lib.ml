@@ -101,7 +101,11 @@ let monitor
     ~(init_ctx : a)
     (cmd : string list)
   : (a Monitor_result.t, string) result =
-  match Proc_utils.exec ~stdin ~stdout ~stderr cmd with
+  let syscalls = handlers
+                 |> List.map Syscall.base_handler_of_handler
+                 |> List.map fst
+  in
+  match Proc_utils.exec ~stdin ~stdout ~stderr ~syscalls cmd with
   | Error msg -> Error msg
   | Ok (_pid, strace_pipe, cleanup) -> (
       let ctx = Ctx.make init_ctx in
