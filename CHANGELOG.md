@@ -28,6 +28,12 @@
   - `bind`
   - `listen`
 
+- Added `--seccomp-bpf` flag to strace invocation
+
+- Added `--trace` argument to specify syscalls to capture
+
+  - Removed debug level `All` as a result
+
 ## Stramon-lib 0.2.1
 
 - Documentation and metadata adjustment
