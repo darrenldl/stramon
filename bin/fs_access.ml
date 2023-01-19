@@ -51,9 +51,9 @@ let add (path : Stramon_lib.Abs_path.t) (mode : mode) (t : t) : t =
   match mode with
   | `R -> { t with r = aux t.r }
   | `Rw -> { t with rw = aux t.rw }
-  | `chmod -> { t with rw = aux t.chmod }
-  | `chown -> { t with rw = aux t.chown }
-  | `stat -> { t with rw = aux t.stat }
+  | `chmod -> { t with chmod = aux t.chmod }
+  | `chown -> { t with chown = aux t.chown }
+  | `stat -> { t with stat = aux t.stat }
 
 let json_of_trie (trie : string list Stramon_lib.Path_trie.t) : Yojson.Basic.t =
   let l = Stramon_lib.Path_trie.to_seq trie
