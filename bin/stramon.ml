@@ -9,7 +9,7 @@ let force_output = ref false
 
 let no_link = ref false
 
-let debug_level = ref "none"
+let debug = ref false
 
 let latest_link_name = "stramon-latest.json"
 
@@ -19,7 +19,7 @@ let speclist = Arg.[
 If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME.json|});
     ("-f", Set force_output, "Force overwrite of output file");
     ("--no-link", Set no_link, Fmt.str "Disable adding/updating symlink %s" latest_link_name);
-    ("--debug-level", Set_string debug_level, "Debug level, one of: none, registered, all");
+    ("--debug", Set debug, "Enable debugging output");
     ("--", Rest add_to_command, "");
   ]
 
@@ -54,6 +54,26 @@ let open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Sys
     )
   | _ -> access
 
+let chmod_handler
+    ((fs, net) : Fs_access.t * Net_access.t)
+    (_pid : int)
+    ({ path; _ } : Stramon_lib.Syscall.chmod)
+  =
+  let open Stramon_lib in
+  let path = Abs_path.of_string_exn path in
+  let fs = Fs_access.add path `chmod fs in
+  (fs, net)
+
+let chown_handler
+    ((fs, net) : Fs_access.t * Net_access.t)
+    (_pid : int)
+    ({ path; _ } : Stramon_lib.Syscall.chown)
+  =
+  let open Stramon_lib in
+  let path = Abs_path.of_string_exn path in
+  let fs = Fs_access.add path `chown fs in
+  (fs, net)
+
 let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
   let open Stramon_lib in
   [
@@ -68,13 +88,21 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
         let fs = open_handler fs path flags in
         (fs, net)
       );
-    `chmod (fun (fs, net) _pid ({ path; _ } : Syscall.chmod) ->
-        let path = Abs_path.of_string_exn path in
+    `chmod chmod_handler;
+    `fchmod chmod_handler;
+    `lchmod chmod_handler;
+    `fchmodat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchmodat) ->
+        let cwd = Abs_path.of_string_exn relative_to in
+        let path = Abs_path.of_string_exn ~cwd path in
         let fs = Fs_access.add path `chmod fs in
         (fs, net)
       );
-    `chown (fun (fs, net) _pid ({ path; _ } : Syscall.chown) ->
-        let path = Abs_path.of_string_exn path in
+    `chown chown_handler;
+    `fchown chown_handler;
+    `lchown chown_handler;
+    `fchownat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchownat) ->
+        let cwd = Abs_path.of_string_exn relative_to in
+        let path = Abs_path.of_string_exn ~cwd path in
         let fs = Fs_access.add path `chown fs in
         (fs, net)
       );
@@ -131,14 +159,10 @@ let () =
       )
     in
     let debug_level =
-      match !debug_level with
-      | "none" -> `None
-      | "registered" -> `Registered
-      | "all" -> `All
-      | _ -> (
-          Printf.eprintf "Error: Unrecognized debug level %s\n" !debug_level;
-          exit 1
-        )
+      if !debug then
+        `Registered
+      else
+        `None
     in
     if Sys.file_exists output_path && not !force_output then (
       Printf.eprintf "Error: File %s already exists\n" output_path;

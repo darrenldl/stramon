@@ -34,7 +34,7 @@ let output_path = Sys.argv.(1)
 
 let () =
   CCIO.with_out output_path (fun oc ->
-      Printf.fprintf oc "open Option_infix\n";
+      Printf.fprintf oc "open Option_let\n";
       Printf.fprintf oc "open Syscall\n";
       Printf.fprintf oc "\n";
 

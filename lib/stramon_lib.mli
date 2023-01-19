@@ -293,7 +293,6 @@ end
 type debug_level = [
   | `None
   | `Registered
-  | `All
 ]
 
 val monitor :
@@ -312,7 +311,6 @@ val monitor :
 
     - [`None] prints nothing (default)
     - [`Registered] prints only data recognized by one of the [handlers]
-    - [`All] prints all reconstructed data received from strace
 
     [stdin], [stdout], [stderr] are passed to [Unix.create_process],
     default to [Unix.stdin], [Unix.stdout], and [Unix.stderr] respectively.

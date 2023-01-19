@@ -27,7 +27,6 @@ type 'a handler_db = (string, 'a Syscall.base_handler) Hashtbl.t
 type debug_level = [
   | `None
   | `Registered
-  | `All
 ]
 
 let process_line
@@ -41,10 +40,6 @@ let process_line
   | Some blob -> (
       let stats = Ctx.get_stats ctx in
       Ctx.set_stats ctx (Stats.record_syscall blob.name stats);
-      (match debug_level with
-       | `None | `Registered -> ()
-       | `All -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_blob blob
-      );
       match Hashtbl.find_opt handler_db blob.name with
       | None -> ()
       | Some f -> (
@@ -52,14 +47,14 @@ let process_line
           | Error msg -> (
               (match debug_level with
                | `None -> ()
-               | `All | `Registered ->
+               | `Registered ->
                  Fmt.epr "@[<v>Failed to parse blob: %a@,Error: %s@,@]"
                    Syscall.pp_blob blob msg
               );
             )
           | Ok syscall -> (
               (match debug_level with
-               | `None | `All -> ()
+               | `None -> ()
                | `Registered -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_base syscall
               );
               match f (Ctx.get_user_ctx ctx) pid syscall with
