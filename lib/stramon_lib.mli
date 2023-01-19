@@ -243,7 +243,6 @@ module Syscall : sig
     | `fchownat of 'a -> int -> fchownat -> 'a
     | `chmod of 'a -> int -> chmod -> 'a
     | `fchmod of 'a -> int -> chmod -> 'a
-    | `lchmod of 'a -> int -> chmod -> 'a
     | `fchmodat of 'a -> int -> fchmodat -> 'a
     | `stat of 'a -> int -> stat -> 'a
     | `fstat of 'a -> int -> stat -> 'a

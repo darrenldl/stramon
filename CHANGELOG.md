@@ -17,7 +17,6 @@
   - `fchownat`
   - `chmod`
   - `fchmod`
-  - `lchmod`
   - `fchmodat`
   - `stat`
   - `fstat`

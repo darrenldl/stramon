@@ -17,7 +17,6 @@ let l : entry list = [
   make_entry "fchownat";
   make_entry "chmod";
   make_entry ~typ_name:"chmod" "fchmod";
-  make_entry ~typ_name:"chmod" "lchmod";
   make_entry "fchmodat";
   make_entry "stat";
   make_entry ~typ_name:"stat" "fstat";

@@ -90,7 +90,6 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
       );
     `chmod chmod_handler;
     `fchmod chmod_handler;
-    `lchmod chmod_handler;
     `fchmodat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchmodat) ->
         let cwd = Abs_path.of_string_exn relative_to in
         let path = Abs_path.of_string_exn ~cwd path in
