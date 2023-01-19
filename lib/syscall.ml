@@ -363,6 +363,17 @@ type fchownat = {
 let fchownat_of_base (base : base) : fchownat option =
   let* ret = int_of_term base.ret in
   match base.args with
+  | [ `String relative_to; `String path; owner; group ] -> (
+      let* owner = int_of_term owner in
+      let* group = int_of_term group in
+      Some { relative_to;
+             path;
+             owner;
+             group;
+             ret;
+             flags = [];
+           }
+    )
   | [ `String relative_to; `String path; owner; group; `Flags flags ] -> (
       let* owner = int_of_term owner in
       let* group = int_of_term group in
@@ -402,6 +413,10 @@ type fchmodat = {
 let fchmodat_of_base (base : base) : fchmodat option =
   let* ret = int_of_term base.ret in
   match base.args with
+  | [ `String relative_to; `String path; mode ] -> (
+      let* mode = int_of_term mode in
+      Some { relative_to; path; mode; ret; flags = [] }
+    )
   | [ `String relative_to; `String path; mode; `Flags flags ] -> (
       let* mode = int_of_term mode in
       Some { relative_to; path; mode; ret; flags }
