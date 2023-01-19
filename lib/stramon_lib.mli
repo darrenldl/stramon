@@ -308,8 +308,8 @@ val monitor :
 
     [debug_level] determines the debuging information printed to stderr:
 
-    - [`None] prints nothing (default)
-    - [`Registered] prints only data recognized by one of the [handlers]
+    - [`None]: print nothing (default)
+    - [`Registered]: print data recognized by one of the [handlers]
 
     [stdin], [stdout], [stderr] are passed to [Unix.create_process],
     default to [Unix.stdin], [Unix.stdout], and [Unix.stderr] respectively.
