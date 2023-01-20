@@ -196,6 +196,16 @@ module Syscall : sig
     flags : literal list;
   }
 
+  type statx = {
+    relative_to : string;
+    path : string;
+    flags : literal list;
+    mask : literal list;
+    uid : int;
+    gid : int;
+    ret : int;
+  }
+
   type sockaddr_in = {
     port : int;
     addr : string;
@@ -249,6 +259,7 @@ module Syscall : sig
     | `lstat of 'a -> int -> stat -> 'a
     | `fstatat64 of 'a -> int -> fstatat -> 'a
     | `newfstatat of 'a -> int -> fstatat -> 'a
+    | `statx of 'a -> int -> statx -> 'a
     | `accept of 'a -> int -> accept -> 'a
     | `connect of 'a -> int -> connect -> 'a
     | `bind of 'a -> int -> bind -> 'a

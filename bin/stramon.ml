@@ -32,6 +32,14 @@ let pp_file_date_time =
 let write_json (oc : out_channel) (json : Yojson.Basic.t) : unit =
   Yojson.Basic.to_channel oc json
 
+let make_path ~relative_to path =
+  let open Stramon_lib in
+  let cwd = Abs_path.of_string_exn relative_to in
+  if path = "" then
+    cwd
+  else
+    Abs_path.of_string_exn ~cwd path
+
 let open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Syscall.literal list) =
   let l = List.filter (fun x ->
       match x with
@@ -89,14 +97,7 @@ let fstatat_handler
     (_pid : int)
     ({ relative_to; path; _ } : Stramon_lib.Syscall.fstatat)
   =
-  let open Stramon_lib in
-  let cwd = Abs_path.of_string_exn relative_to in
-  let path =
-    if path = "" then
-      cwd
-    else
-      Abs_path.of_string_exn path
-  in
+  let path = make_path ~relative_to path in
   let fs = Fs_access.add path `stat fs in
   (fs, net)
 
@@ -109,26 +110,14 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
         (fs, net)
       );
     `openat (fun (fs, net) _pid ({ relative_to; path; flags; mode = _ } : Syscall.openat) ->
-        let cwd = Abs_path.of_string_exn relative_to in
-        let path =
-          if path = "" then
-            cwd
-          else
-            Abs_path.of_string_exn ~cwd path
-        in
+        let path = make_path ~relative_to path in
         let fs = open_handler fs path flags in
         (fs, net)
       );
     `chmod chmod_handler;
     `fchmod chmod_handler;
     `fchmodat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchmodat) ->
-        let cwd = Abs_path.of_string_exn relative_to in
-        let path =
-          if path = "" then
-            cwd
-          else
-            Abs_path.of_string_exn ~cwd path
-        in
+        let path = make_path ~relative_to path in
         let fs = Fs_access.add path `chmod fs in
         (fs, net)
       );
@@ -136,13 +125,7 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
     `fchown chown_handler;
     `lchown chown_handler;
     `fchownat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchownat) ->
-        let cwd = Abs_path.of_string_exn relative_to in
-        let path =
-          if path = "" then
-            cwd
-          else
-            Abs_path.of_string_exn ~cwd path
-        in
+        let path = make_path ~relative_to path in
         let fs = Fs_access.add path `chown fs in
         (fs, net)
       );
@@ -150,6 +133,11 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
     `lstat stat_handler;
     `fstat stat_handler;
     `fstatat64 fstatat_handler;
+    `statx (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.statx) ->
+        let path = make_path ~relative_to path in
+        let fs = Fs_access.add path `stat fs in
+        (fs, net)
+      );
     `newfstatat fstatat_handler;
     `socket (fun (fs, net) _pid (_ : Syscall.socket) ->
         (fs, net)

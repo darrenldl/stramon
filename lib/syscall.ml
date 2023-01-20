@@ -495,13 +495,44 @@ let fstatat_of_base (base : base) : fstatat option =
       let* gid = List.assoc_opt "st_gid" status in
       let* gid = int_of_term gid in
       let* flags = flags_of_term flags in
-      Some { relative_to;
-             path;
-             uid;
-             gid;
-             ret;
-             flags;
-           }
+      Some ({ relative_to;
+              path;
+              uid;
+              gid;
+              ret;
+              flags;
+            } : fstatat)
+    )
+  | _ -> None
+
+type statx = {
+  relative_to : string;
+  path : string;
+  flags : literal list;
+  mask : literal list;
+  uid : int;
+  gid : int;
+  ret : int;
+}
+
+let statx_of_base (base : base) : statx option =
+  let* ret = int_of_term base.ret in
+  match base.args with
+  | [ `String relative_to; `String path; flags; mask; `Struct status ] -> (
+      let* uid = List.assoc_opt "stx_uid" status in
+      let* uid = int_of_term uid in
+      let* gid = List.assoc_opt "stx_gid" status in
+      let* gid = int_of_term gid in
+      let* flags = flags_of_term flags in
+      let* mask = flags_of_term mask in
+      Some ({ relative_to;
+              path;
+              flags;
+              mask;
+              uid;
+              gid;
+              ret;
+            } : statx)
     )
   | _ -> None
 
