@@ -4,6 +4,8 @@
 
 - Stramon now still collects access information even if `kind_of_file` fails
 
+- Depends on Stramon-lib >= 0.3.0
+
 ## Stramon-lib 0.3.0
 
 - Adjusted code to be buildable on OCaml 4.08
