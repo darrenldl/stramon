@@ -247,7 +247,8 @@ module Syscall : sig
     | `stat of 'a -> int -> stat -> 'a
     | `fstat of 'a -> int -> stat -> 'a
     | `lstat of 'a -> int -> stat -> 'a
-    | `fstatat of 'a -> int -> fstatat -> 'a
+    | `fstatat64 of 'a -> int -> fstatat -> 'a
+    | `newfstatat of 'a -> int -> fstatat -> 'a
     | `accept of 'a -> int -> accept -> 'a
     | `connect of 'a -> int -> connect -> 'a
     | `bind of 'a -> int -> bind -> 'a

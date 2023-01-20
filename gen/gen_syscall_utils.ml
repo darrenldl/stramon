@@ -21,7 +21,8 @@ let l : entry list = [
   make_entry "stat";
   make_entry ~typ_name:"stat" "fstat";
   make_entry ~typ_name:"stat" "lstat";
-  make_entry "fstatat";
+  make_entry ~typ_name:"fstatat" "fstatat64";
+  make_entry ~typ_name:"fstatat" "newfstatat";
   make_entry "socket";
   make_entry "connect";
   make_entry "accept";

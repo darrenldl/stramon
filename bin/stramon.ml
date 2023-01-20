@@ -74,6 +74,26 @@ let chown_handler
   let fs = Fs_access.add path `chown fs in
   (fs, net)
 
+let stat_handler
+    ((fs, net) : Fs_access.t * Net_access.t)
+    (_pid : int)
+    ({ path; _ } : Stramon_lib.Syscall.stat)
+  =
+  let open Stramon_lib in
+  let path = Abs_path.of_string_exn path in
+  let fs = Fs_access.add path `stat fs in
+  (fs, net)
+
+let fstatat_handler
+    ((fs, net) : Fs_access.t * Net_access.t)
+    (_pid : int)
+    ({ path; _ } : Stramon_lib.Syscall.fstatat)
+  =
+  let open Stramon_lib in
+  let path = Abs_path.of_string_exn path in
+  let fs = Fs_access.add path `stat fs in
+  (fs, net)
+
 let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
   let open Stramon_lib in
   [
@@ -105,11 +125,11 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
         let fs = Fs_access.add path `chown fs in
         (fs, net)
       );
-    `stat (fun (fs, net) _pid ({ path; _ } : Syscall.stat) ->
-        let path = Abs_path.of_string_exn path in
-        let fs = Fs_access.add path `stat fs in
-        (fs, net)
-      );
+    `stat stat_handler;
+    `lstat stat_handler;
+    `fstat stat_handler;
+    `fstatat64 fstatat_handler;
+    `newfstatat fstatat_handler;
     `socket (fun (fs, net) _pid (_ : Syscall.socket) ->
         (fs, net)
       );
