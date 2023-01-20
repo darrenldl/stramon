@@ -23,6 +23,7 @@
   - `lstat`
   - `fstatat64`
   - `newfstatat`
+  - `statx`
   - `accept`
   - `connect`
   - `open`
