@@ -21,7 +21,8 @@
   - `stat`
   - `fstat`
   - `lstat`
-  - `fstatat`
+  - `fstatat64`
+  - `newfstatat`
   - `accept`
   - `connect`
   - `open`
