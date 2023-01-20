@@ -197,6 +197,7 @@ let blob_of_string (str : string) : blob option =
       Some { name; arg_text; ret; errno; errno_msg }
 
 let base_of_blob ({ name; arg_text; ret; errno; errno_msg } : blob) : (base, string) result =
+  let arg_text = String_utils.remove_c_comments arg_text in
   match
     Angstrom.(parse_string ~consume:Consume.All) Parsers.args_p arg_text
   with
