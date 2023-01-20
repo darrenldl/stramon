@@ -87,10 +87,16 @@ let stat_handler
 let fstatat_handler
     ((fs, net) : Fs_access.t * Net_access.t)
     (_pid : int)
-    ({ path; _ } : Stramon_lib.Syscall.fstatat)
+    ({ relative_to; path; _ } : Stramon_lib.Syscall.fstatat)
   =
   let open Stramon_lib in
-  let path = Abs_path.of_string_exn path in
+  let cwd = Abs_path.of_string_exn relative_to in
+  let path =
+    if path = "" then
+      cwd
+    else
+      Abs_path.of_string_exn path
+  in
   let fs = Fs_access.add path `stat fs in
   (fs, net)
 
@@ -104,7 +110,12 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
       );
     `openat (fun (fs, net) _pid ({ relative_to; path; flags; mode = _ } : Syscall.openat) ->
         let cwd = Abs_path.of_string_exn relative_to in
-        let path = Abs_path.of_string_exn ~cwd path in
+        let path =
+          if path = "" then
+            cwd
+          else
+            Abs_path.of_string_exn ~cwd path
+        in
         let fs = open_handler fs path flags in
         (fs, net)
       );
@@ -112,7 +123,12 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
     `fchmod chmod_handler;
     `fchmodat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchmodat) ->
         let cwd = Abs_path.of_string_exn relative_to in
-        let path = Abs_path.of_string_exn ~cwd path in
+        let path =
+          if path = "" then
+            cwd
+          else
+            Abs_path.of_string_exn ~cwd path
+        in
         let fs = Fs_access.add path `chmod fs in
         (fs, net)
       );
@@ -121,7 +137,12 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
     `lchown chown_handler;
     `fchownat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchownat) ->
         let cwd = Abs_path.of_string_exn relative_to in
-        let path = Abs_path.of_string_exn ~cwd path in
+        let path =
+          if path = "" then
+            cwd
+          else
+            Abs_path.of_string_exn ~cwd path
+        in
         let fs = Fs_access.add path `chown fs in
         (fs, net)
       );
