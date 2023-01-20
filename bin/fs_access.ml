@@ -58,8 +58,13 @@ let add (path : Stramon_lib.Abs_path.t) (mode : mode) (t : t) : t =
 let json_of_trie (trie : string list Stramon_lib.Path_trie.t) : Yojson.Basic.t =
   let l = Stramon_lib.Path_trie.to_seq trie
           |> Seq.map (fun (path, kinds) ->
-              let kinds = String.concat "," kinds in
-              (Stramon_lib.Abs_path.to_string path, `String kinds)
+              let v =
+                match kinds with
+                | [] -> `Null
+                | [x] -> `String x
+                | l -> `List (List.map (fun s -> `String s) l)
+              in
+              (Stramon_lib.Abs_path.to_string path, v)
             )
           |> List.of_seq
   in
