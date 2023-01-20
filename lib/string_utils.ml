@@ -151,7 +151,7 @@ let remove_c_comments (s : string) : string =
   let rec aux acc s last_seg_end i =
     let maybe_add_to_acc acc s last_seg_end i =
       if last_seg_end < i then
-        String.sub s last_seg_end (i - last_seg_end) :: acc
+        StringLabels.sub ~pos:last_seg_end ~len:(i - last_seg_end) s :: acc
       else
         acc
     in
