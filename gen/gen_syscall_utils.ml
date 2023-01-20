@@ -61,10 +61,10 @@ let () =
           in
           Printf.fprintf oc {|
       | `%s f -> ("%s",
-                   (fun ctx pid base ->
-                      let+ x = %s_of_base base in
-                      f ctx pid x
-                   ))
+                  (fun ctx pid base ->
+                     let+ x = %s_of_base base in
+                     f ctx pid x
+                  ))
       |} syscall_name syscall_name' typ_name';
         ) l;
     )
