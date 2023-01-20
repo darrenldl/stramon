@@ -41,6 +41,14 @@ let int_of_term (term : term) : int option =
   with
   | _ -> None
 
+let flags_of_term (term : term) : literal list option =
+  match term with
+  | `Flags l -> Some l
+  | `Int 0L -> Some []
+  | `Int x -> Some [ `Int x ]
+  | `Const x -> Some [ `Const x ]
+  | _ -> None
+
 type base = {
   name : string;
   args : term list;
@@ -280,8 +288,14 @@ type open_ = {
 let open_of_base (base : base) : open_ option =
   let* ret = int_of_term base.ret in
   match base.args with
-  | [ `String path; `Flags flags ] -> Some { path; flags; mode = []; ret }
-  | [ `String path; `Flags flags; `Flags mode ] -> Some { path; flags; mode; ret }
+  | [ `String path; flags ] -> (
+      let* flags = flags_of_term flags in
+      Some { path; flags; mode = []; ret }
+    )
+  | [ `String path; flags; `Flags mode ] -> (
+      let* flags = flags_of_term flags in
+      Some { path; flags; mode; ret }
+    )
   | _ -> None
 
 type openat = {
@@ -293,10 +307,14 @@ type openat = {
 
 let openat_of_base (base : base) : openat option =
   match base.args with
-  | [ `String relative_to; `String path; `Flags flags ] ->
-    Some { relative_to; path; flags; mode = [] }
-  | [ `String relative_to; `String path; `Flags flags; `Flags mode ] ->
-    Some { relative_to; path; flags; mode }
+  | [ `String relative_to; `String path; flags ] -> (
+      let* flags = flags_of_term flags in
+      Some { relative_to; path; flags; mode = [] }
+    )
+  | [ `String relative_to; `String path; flags; `Flags mode ] -> (
+      let* flags = flags_of_term flags in
+      Some { relative_to; path; flags; mode }
+    )
   | _ -> None
 
 type read = {
@@ -429,12 +447,9 @@ let fchmodat_of_base (base : base) : fchmodat option =
       let* mode = int_of_term mode in
       Some { relative_to; path; mode; ret; flags = [] }
     )
-  | [ `String relative_to; `String path; mode; `Int 0L ] -> (
+  | [ `String relative_to; `String path; mode; flags ] -> (
       let* mode = int_of_term mode in
-      Some { relative_to; path; mode; ret; flags = [] }
-    )
-  | [ `String relative_to; `String path; mode; `Flags flags ] -> (
-      let* mode = int_of_term mode in
+      let* flags = flags_of_term flags in
       Some { relative_to; path; mode; ret; flags }
     )
   | _ -> None
@@ -474,11 +489,12 @@ type fstatat = {
 let fstatat_of_base (base : base) : fstatat option =
   let* ret = int_of_term base.ret in
   match base.args with
-  | [ `String relative_to; `String path; `Struct status; `Flags flags ] -> (
+  | [ `String relative_to; `String path; `Struct status; flags ] -> (
       let* uid = List.assoc_opt "st_uid" status in
       let* uid = int_of_term uid in
       let* gid = List.assoc_opt "st_gid" status in
       let* gid = int_of_term gid in
+      let* flags = flags_of_term flags in
       Some { relative_to;
              path;
              uid;
