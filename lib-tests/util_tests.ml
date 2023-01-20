@@ -80,6 +80,72 @@ module Alco = struct
       0o123456L
       Stramon_lib.Utils.(Option.get @@ octal_of_string "123456")
 
+  let remove_c_comments_case0 () =
+    Alcotest.(check string)
+      "same string"
+      ""
+      (Stramon_lib.Utils.remove_c_comments "")
+
+  let remove_c_comments_case1 () =
+    Alcotest.(check string)
+      "same string"
+      "1"
+      (Stramon_lib.Utils.remove_c_comments "1")
+
+  let remove_c_comments_case2 () =
+    Alcotest.(check string)
+      "same string"
+      "12"
+      (Stramon_lib.Utils.remove_c_comments "12")
+
+  let remove_c_comments_case3 () =
+    Alcotest.(check string)
+      "same string"
+      "1234abcd"
+      (Stramon_lib.Utils.remove_c_comments "1234abcd")
+
+  let remove_c_comments_case4 () =
+    Alcotest.(check string)
+      "same string"
+      "1234abcd"
+      (Stramon_lib.Utils.remove_c_comments "1234/**/abcd")
+
+  let remove_c_comments_case5 () =
+    Alcotest.(check string)
+      "same string"
+      "12abcd"
+      (Stramon_lib.Utils.remove_c_comments "12/*34*/abcd")
+
+  let remove_c_comments_case6 () =
+    Alcotest.(check string)
+      "same string"
+      "12cd"
+      (Stramon_lib.Utils.remove_c_comments "12/*34*//*ab*/cd")
+
+  let remove_c_comments_case7 () =
+    Alcotest.(check string)
+      "same string"
+      "12ab"
+      (Stramon_lib.Utils.remove_c_comments "12/*34*/ab/*cd*/")
+
+  let remove_c_comments_case8 () =
+    Alcotest.(check string)
+      "same string"
+      "34ab"
+      (Stramon_lib.Utils.remove_c_comments "/*12*/34ab/*cd*/")
+
+  let remove_c_comments_case9 () =
+    Alcotest.(check string)
+      "same string"
+      ""
+      (Stramon_lib.Utils.remove_c_comments "/*1234abcd*/")
+
+  let remove_c_comments_case10 () =
+    Alcotest.(check string)
+      "same string"
+      ""
+      (Stramon_lib.Utils.remove_c_comments "/**//*1234abcd*//**/")
+
   let suite =
     [
       Alcotest.test_case "string_of_hex_string_case0" `Quick string_of_hex_string_case0;
@@ -95,5 +161,16 @@ module Alco = struct
       Alcotest.test_case "octal_of_string_case1" `Quick octal_of_string_case1;
       Alcotest.test_case "octal_of_string_case2" `Quick octal_of_string_case2;
       Alcotest.test_case "octal_of_string_case3" `Quick octal_of_string_case3;
+      Alcotest.test_case "remove_c_comments_case0" `Quick remove_c_comments_case0;
+      Alcotest.test_case "remove_c_comments_case1" `Quick remove_c_comments_case1;
+      Alcotest.test_case "remove_c_comments_case2" `Quick remove_c_comments_case2;
+      Alcotest.test_case "remove_c_comments_case3" `Quick remove_c_comments_case3;
+      Alcotest.test_case "remove_c_comments_case4" `Quick remove_c_comments_case4;
+      Alcotest.test_case "remove_c_comments_case5" `Quick remove_c_comments_case5;
+      Alcotest.test_case "remove_c_comments_case6" `Quick remove_c_comments_case6;
+      Alcotest.test_case "remove_c_comments_case7" `Quick remove_c_comments_case7;
+      Alcotest.test_case "remove_c_comments_case8" `Quick remove_c_comments_case8;
+      Alcotest.test_case "remove_c_comments_case9" `Quick remove_c_comments_case9;
+      Alcotest.test_case "remove_c_comments_case10" `Quick remove_c_comments_case10;
     ]
 end

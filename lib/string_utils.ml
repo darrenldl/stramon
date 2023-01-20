@@ -135,3 +135,36 @@ let find_char_rev ?(start : int option) (c : char) (s : string) : int option =
       aux (pred i)
   in
   aux start
+
+let remove_c_comments (s : string) : string =
+  let str_len = String.length s in
+  let rec shift_until_closing s i =
+    if i >= str_len then
+      i
+    else (
+      if i <= str_len-1 && s.[i] = '*' && s.[i+1] = '/' then
+        i+2
+      else
+        shift_until_closing s (i+1)
+    )
+  in
+  let rec aux acc s last_seg_end i =
+    let maybe_add_to_acc acc s last_seg_end i =
+      if last_seg_end < i then
+        String.sub s last_seg_end (i - last_seg_end) :: acc
+      else
+        acc
+    in
+    if i >= str_len then
+      let acc = maybe_add_to_acc acc s last_seg_end i in
+      String.concat "" (List.rev acc)
+    else (
+      if s.[i] = '/' && s.[i+1] = '*' then
+        let skip_to = shift_until_closing s (i+2) in
+        let acc = maybe_add_to_acc acc s last_seg_end i in
+        aux acc s skip_to skip_to
+      else
+        aux acc s last_seg_end (i+1)
+    )
+  in
+  aux [] s 0 0

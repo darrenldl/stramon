@@ -12,6 +12,8 @@ module Utils = struct
   let hex_of_string = String_utils.hex_of_string
 
   let octal_of_string = String_utils.octal_of_string
+
+  let remove_c_comments = String_utils.remove_c_comments
 end
 
 module Syscall = struct

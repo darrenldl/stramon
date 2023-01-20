@@ -337,4 +337,7 @@ module Utils : sig
   val hex_of_string : string -> int64 option
 
   val octal_of_string : string -> int64 option
+
+  val remove_c_comments : string -> string
+  (** Does not handle nested C comments *)
 end
