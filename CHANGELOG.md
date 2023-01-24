@@ -1,5 +1,9 @@
 # Changlog
 
+## Stramon 0.2.1
+
+- Added `--version` flag
+
 ## Stramon 0.2.0
 
 - Stramon now still collects access information even if `kind_of_file` fails
