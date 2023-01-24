@@ -12,4 +12,3 @@ RUN opam install timedesc
 RUN opam install yojson
 RUN apk add libexecinfo-static
 RUN opam install odoc
-RUN opam install dune-build-info

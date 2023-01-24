@@ -12,4 +12,3 @@ RUN opam install alcotest qcheck qcheck-alcotest
 RUN opam install timedesc
 RUN opam install yojson
 RUN opam install odoc
-RUN opam install dune-build-info

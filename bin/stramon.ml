@@ -26,11 +26,6 @@ If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME
     ("--", Rest add_to_command, "");
   ]
 
-let version_str =
-  match Build_info.V1.version () with
-  | None -> "n/a"
-  | Some v -> Build_info.V1.Version.to_string v
-
 let usage_msg = "stramon [-o JSON_OUTPUT] -- prog arg ..."
 
 let pp_file_date_time =
@@ -175,7 +170,7 @@ let () =
   try
     Arg.parse speclist add_to_command usage_msg;
     if !print_version then (
-      Printf.printf "%s\n" version_str;
+      Printf.printf "%s\n" Version_string.s;
       exit 0
     ) else (
       let command = List.rev !command in

@@ -42,7 +42,6 @@ or to be used in similar fashion of process monitoring.
 
 (package
  (name stramon)
- (version "0.2.1")
  (synopsis "Process behavior monitoring utility based on strace")
  (description "")
  (documentation https://github.com/darrenldl/stramon)

@@ -10,10 +10,12 @@ PATCH_OPAMFILES = sed -i 's/"@runtest"\s*{with-test}//g' $(OPAMFILES)
 
 .PHONY: all
 all:
+	./update-stramon-version-string.sh
 	dune build @all
 
 .PHONY: release-static
 release-static :
+	./update-stramon-version-string.sh
 	OCAMLPARAM='_,ccopt=-static' dune build --release bin/stramon.exe
 
 .PHONY: lib-tests

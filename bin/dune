@@ -16,5 +16,4 @@
             timedesc-tzlocal.utc
             fmt
             yojson
-            dune-build-info
             ))
