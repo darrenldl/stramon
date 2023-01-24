@@ -12,3 +12,4 @@ fuzz/core.*
 *.tar.gz
 test.json
 /*.json
+/examples/stramon-latest.json

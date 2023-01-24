@@ -174,20 +174,26 @@ let () =
       exit 0
     ) else (
       let command = List.rev !command in
-      let output_path, latest_link_path =
+      let output_path, latest_link_target, latest_link_path =
+        let default_name =
+          Fmt.str "stramon_%a.json" pp_file_date_time (Timedesc.now ())
+        in
         if !output_path = "" then (
-          (Fmt.str "stramon_%a.json" pp_file_date_time (Timedesc.now ()),
+          (default_name,
+           default_name,
            latest_link_name
           )
         ) else (
           if Sys.file_exists !output_path
           && Sys.is_directory !output_path
           then (
-            (Fmt.str "%s/stramon_%a.json" !output_path pp_file_date_time (Timedesc.now ()),
+            (Fmt.str "%s/%s" !output_path default_name,
+             default_name,
              Fmt.str "%s/%s" !output_path latest_link_name
             )
           ) else (
             (!output_path,
+             Filename.basename !output_path,
              Fmt.str "%s/%s" (Filename.dirname !output_path) latest_link_name
             )
           )
@@ -247,7 +253,7 @@ let () =
                  | _ -> ()
                 );
                 (try
-                   Unix.symlink output_path latest_link_path
+                   Unix.symlink latest_link_target latest_link_path
                  with
                  | _ -> (
                      Printf.eprintf "Error: Failed to update symlink %s\n" latest_link_path;

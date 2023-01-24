@@ -1,5 +1,9 @@
 # Changlog
 
+## Stramon 0.2.2
+
+- Fixed `stramon-latest.json` symlink update
+
 ## Stramon 0.2.1
 
 - Added `--version` flag
