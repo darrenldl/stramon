@@ -9,6 +9,8 @@ let force_output = ref false
 
 let no_link = ref false
 
+let print_version = ref false
+
 let debug = ref false
 
 let latest_link_name = "stramon-latest.json"
@@ -19,9 +21,15 @@ let speclist = Arg.[
 If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME.json|});
     ("-f", Set force_output, "Force overwrite of output file");
     ("--no-link", Set no_link, Fmt.str "Disable adding/updating symlink %s" latest_link_name);
+    ("--version", Set print_version, "Print version and exit");
     ("--debug", Set debug, "Enable debugging output");
     ("--", Rest add_to_command, "");
   ]
+
+let version_str =
+  match Build_info.V1.version () with
+  | None -> "n/a"
+  | Some v -> Build_info.V1.Version.to_string v
 
 let usage_msg = "stramon [-o JSON_OUTPUT] -- prog arg ..."
 
@@ -166,92 +174,97 @@ let () =
   Sys.catch_break true;
   try
     Arg.parse speclist add_to_command usage_msg;
-    let command = List.rev !command in
-    let output_path, latest_link_path =
-      if !output_path = "" then (
-        (Fmt.str "stramon_%a.json" pp_file_date_time (Timedesc.now ()),
-         latest_link_name
-        )
-      ) else (
-        if Sys.file_exists !output_path
-        && Sys.is_directory !output_path
-        then (
-          (Fmt.str "%s/stramon_%a.json" !output_path pp_file_date_time (Timedesc.now ()),
-           Fmt.str "%s/%s" !output_path latest_link_name
+    if !print_version then (
+      Printf.printf "%s\n" version_str;
+      exit 0
+    ) else (
+      let command = List.rev !command in
+      let output_path, latest_link_path =
+        if !output_path = "" then (
+          (Fmt.str "stramon_%a.json" pp_file_date_time (Timedesc.now ()),
+           latest_link_name
           )
         ) else (
-          (!output_path,
-           Fmt.str "%s/%s" (Filename.dirname !output_path) latest_link_name
-          )
-        )
-      )
-    in
-    let debug_level =
-      if !debug then
-        `Registered
-      else
-        `None
-    in
-    if Sys.file_exists output_path && not !force_output then (
-      Printf.eprintf "Error: File %s already exists\n" output_path;
-      exit 1
-    ) else (
-      (
-        try
-          CCIO.with_out output_path (fun _ -> ())
-        with
-        | _ -> (
-            Printf.eprintf "Error: Cannot open %s during test open\n" output_path;
-            exit 1
-          )
-      );
-      match
-        Stramon_lib.monitor
-          ~debug_level
-          ~handlers
-          ~init_ctx:(Fs_access.empty, Net_access.empty)
-          command
-      with
-      | Error msg -> (
-          Printf.eprintf "Error: %s\n" msg;
-          exit 2
-        )
-      | Ok res -> (
-          (
-            try
-              CCIO.with_out output_path (fun oc ->
-                  let stats = Stramon_lib.Monitor_result.stats res in
-                  let (fs, net) = Stramon_lib.Monitor_result.ctx res in
-                  let summary = Summary.make stats fs net in
-                  let json = Summary.to_json summary in
-                  write_json oc json
-                )
-            with
-            | _ -> (
-                Printf.eprintf "Error: Failed to write to %s\n" output_path;
-                exit 1
-              )
-          );
-          if not !no_link then (
-            if Unix.has_symlink () then (
-              (try
-                 Sys.remove latest_link_path
-               with
-               | _ -> ()
-              );
-              (try
-                 Unix.symlink output_path latest_link_path
-               with
-               | _ -> (
-                   Printf.eprintf "Error: Failed to update symlink %s\n" latest_link_path;
-                 )
-              )
-            ) else (
-              Printf.eprintf "Error: Process cannot create symlink\n";
-              exit 1
+          if Sys.file_exists !output_path
+          && Sys.is_directory !output_path
+          then (
+            (Fmt.str "%s/stramon_%a.json" !output_path pp_file_date_time (Timedesc.now ()),
+             Fmt.str "%s/%s" !output_path latest_link_name
+            )
+          ) else (
+            (!output_path,
+             Fmt.str "%s/%s" (Filename.dirname !output_path) latest_link_name
             )
           )
         )
+      in
+      let debug_level =
+        if !debug then
+          `Registered
+        else
+          `None
+      in
+      if Sys.file_exists output_path && not !force_output then (
+        Printf.eprintf "Error: File %s already exists\n" output_path;
+        exit 1
+      ) else (
+        (
+          try
+            CCIO.with_out output_path (fun _ -> ())
+          with
+          | _ -> (
+              Printf.eprintf "Error: Cannot open %s during test open\n" output_path;
+              exit 1
+            )
+        );
+        match
+          Stramon_lib.monitor
+            ~debug_level
+            ~handlers
+            ~init_ctx:(Fs_access.empty, Net_access.empty)
+            command
+        with
+        | Error msg -> (
+            Printf.eprintf "Error: %s\n" msg;
+            exit 2
+          )
+        | Ok res -> (
+            (
+              try
+                CCIO.with_out output_path (fun oc ->
+                    let stats = Stramon_lib.Monitor_result.stats res in
+                    let (fs, net) = Stramon_lib.Monitor_result.ctx res in
+                    let summary = Summary.make stats fs net in
+                    let json = Summary.to_json summary in
+                    write_json oc json
+                  )
+              with
+              | _ -> (
+                  Printf.eprintf "Error: Failed to write to %s\n" output_path;
+                  exit 1
+                )
+            );
+            if not !no_link then (
+              if Unix.has_symlink () then (
+                (try
+                   Sys.remove latest_link_path
+                 with
+                 | _ -> ()
+                );
+                (try
+                   Unix.symlink output_path latest_link_path
+                 with
+                 | _ -> (
+                     Printf.eprintf "Error: Failed to update symlink %s\n" latest_link_path;
+                   )
+                )
+              ) else (
+                Printf.eprintf "Error: Process cannot create symlink\n";
+                exit 1
+              )
+            )
+          )
+      )
     )
   with
   | Sys.Break -> (
