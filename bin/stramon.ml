@@ -163,6 +163,15 @@ let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
     `listen (fun (fs, net) _pid (_ : Syscall.listen) ->
         (fs, net)
       );
+    `fork (fun (fs, net) _pid (_ : Syscall.fork) ->
+        (fs, net)
+      );
+    `clone (fun (fs, net) _pid (_ : Syscall.clone) ->
+        (fs, net)
+      );
+    `clone3 (fun (fs, net) _pid (_ : Syscall.clone3) ->
+        (fs, net)
+      );
   ]
 
 let () =
