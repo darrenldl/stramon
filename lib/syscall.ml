@@ -131,6 +131,21 @@ module Parsers = struct
        ident_string >>| fun s -> pre ^ s);
     ]
 
+  let struct_p term_p : (string * term) list t =
+    char '{' *> spaces *>
+    sep_by_comma
+      ((ident_string >>=
+        fun k ->
+        spaces *> char '=' *> spaces *>
+        term_p >>| fun v -> (k, v)
+       )
+       <|>
+       (term_p >>| fun v -> ("", v))
+      )
+    >>= fun l ->
+    spaces *> char '}' *>
+    return l
+
   let term_p : term t =
     fix (fun p ->
         choice [
@@ -140,19 +155,24 @@ module Parsers = struct
           (char '"' *> hex_string_p non_quote_string >>= fun s ->
            char '"' *> return (`String s)
           );
-          (char '{' *> spaces *>
-           sep_by_comma
-             ((ident_string >>=
-               fun k ->
-               spaces *> char '=' *> spaces *>
-               p >>| fun v -> (k, v)
-              )
-              <|>
-              (p >>| fun v -> ("", v))
-             )
+          (struct_p p
            >>= fun l ->
-           spaces *> char '}' *>
-           return (`Struct l)
+           ((
+             spaces *> string "=>" *> spaces
+             *> struct_p p >>| fun l' ->
+             `Struct
+               (List.map (fun (k, v) ->
+                    if k <> "" then (
+                      match List.assoc_opt k l' with
+                      | None -> (k, v)
+                      | Some v -> (k, v)
+                    ) else
+                      (k, v)
+                  ) l)
+           )
+             <|>
+             (return (`Struct l))
+           )
           );
           (char '[' *>
            spaces *>
