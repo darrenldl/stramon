@@ -1,5 +1,9 @@
 # Changlog
 
+## Stramon 0.3.0
+
+- Added `tid` collection
+
 ## Stramon-lib 0.4.0
 
 - Added handling for following syscalls:
