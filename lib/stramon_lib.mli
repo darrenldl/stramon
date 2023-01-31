@@ -242,6 +242,24 @@ module Syscall : sig
     socket : string;
   }
 
+  type fork = {
+    pid : int;
+  }
+
+  type clone = {
+    flags : literal list;
+    child_tid : int option;
+    errno : string option;
+    errno_msg : string option;
+  }
+
+  type clone3 = {
+    flags : literal list;
+    child_tid : int option;
+    errno : string option;
+    errno_msg : string option;
+  }
+
   type 'a handler = [
     | `open_ of 'a -> int -> open_ -> 'a
     | `openat of 'a -> int -> openat -> 'a
@@ -264,6 +282,9 @@ module Syscall : sig
     | `connect of 'a -> int -> connect -> 'a
     | `bind of 'a -> int -> bind -> 'a
     | `listen of 'a -> int -> listen -> 'a
+    | `fork of 'a -> int -> fork -> 'a
+    | `clone of 'a -> int -> clone -> 'a
+    | `clone3 of 'a -> int -> clone3 -> 'a
   ]
   (** A handler receives the user-defined "context",
       process id, and finally the syscall specific data.

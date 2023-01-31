@@ -1,5 +1,13 @@
 # Changlog
 
+## Stramon-lib 0.4.0
+
+- Added handling for following syscalls:
+
+  - `fork`
+  - `clone`
+  - `clone3`
+
 ## Stramon 0.2.2
 
 - Fixed `stramon-latest.json` symlink update

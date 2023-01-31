@@ -131,8 +131,7 @@ module Parsers = struct
        ident_string >>| fun s -> pre ^ s);
     ]
 
-  let struct_p term_p : (string * term) list t =
-    char '{' *> spaces *>
+  let key_term_pairs_p term_p : (string * term) list t =
     sep_by_comma
       ((ident_string >>=
         fun k ->
@@ -142,6 +141,10 @@ module Parsers = struct
        <|>
        (term_p >>| fun v -> ("", v))
       )
+
+  let struct_p term_p : (string * term) list t =
+    char '{' *> spaces *>
+    key_term_pairs_p term_p
     >>= fun l ->
     spaces *> char '}' *>
     return l
@@ -196,7 +199,12 @@ module Parsers = struct
       )
 
   let args_p : term list t =
-    spaces *> sep_by_comma term_p <* spaces
+    spaces *> key_term_pairs_p term_p <* spaces
+    >>| fun l ->
+    if List.for_all (fun (k, _) -> k = "") l then
+      List.map snd l
+    else
+      [`Struct l]
 
   let ret_p : term t =
     spaces *> term_p <* spaces
@@ -667,3 +675,57 @@ let listen_of_base (base : base) : listen option =
   | [ `String socket; `Int _backlog ] ->
     Some ({ socket } : listen)
   | _ -> None
+
+type fork = {
+  pid : int;
+}
+
+let fork_of_base (base : base) : fork option =
+  let+ pid = int_of_term base.ret in
+  { pid }
+
+type clone = {
+  flags : literal list;
+  child_tid : int option;
+  errno : string option;
+  errno_msg : string option;
+}
+
+let clone_of_base (base : base) : clone option =
+  let errno = base.errno in
+  let errno_msg = base.errno_msg in
+  let* child_tid = int_of_term base.ret in
+  match base.args with
+  | `Flags flags :: _ ->
+    if child_tid >= 0 then
+      Some ({ flags; child_tid = Some child_tid; errno; errno_msg } : clone)
+    else
+      Some ({ flags; child_tid = None; errno; errno_msg } : clone)
+  | _ ->
+    None
+
+type clone3 = {
+  flags : literal list;
+  child_tid : int option;
+  errno : string option;
+  errno_msg : string option;
+}
+
+let clone3_of_base (base : base) : clone3 option =
+  let errno = base.errno in
+  let errno_msg = base.errno_msg in
+  let* child_tid = int_of_term base.ret in
+  match base.args with
+  | `Struct l ::  _ -> (
+      let* flags = List.assoc_opt "flags" l in
+      match flags with
+      | `Flags flags ->
+        if child_tid >= 0 then
+          Some ({ flags; child_tid = Some child_tid; errno; errno_msg } : clone3)
+        else
+          Some ({ flags; child_tid = None; errno; errno_msg } : clone3)
+      | _ ->
+        None
+    )
+  | _ ->
+    None

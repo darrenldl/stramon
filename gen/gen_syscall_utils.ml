@@ -29,6 +29,9 @@ let l : entry list = [
   make_entry "accept";
   make_entry "bind";
   make_entry "listen";
+  make_entry "fork";
+  make_entry "clone";
+  make_entry "clone3";
 ]
 
 let output_path = Sys.argv.(1)
