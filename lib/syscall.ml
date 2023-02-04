@@ -87,8 +87,9 @@ module Parsers = struct
     | Some s -> return s
 
   let decoded_p =
-    non_angle_string *> char '<' *> hex_string_p non_angle_string >>= fun s ->
-    char '>' *> return s
+    non_angle_string *> char '<' *> hex_string_p non_angle_string
+    >>= fun s ->
+    char '>' *> ( (string "(deleted)" *> return s) <|> return s )
 
   let blob_ret_p =
     spaces *>
