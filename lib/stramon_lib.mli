@@ -330,7 +330,7 @@ type debug_level = [
 ]
 
 val monitor :
-  ?copy_raw_strace_to:Format.formatter ->
+  ?copy_raw_strace:Format.formatter ->
   ?debug_level:debug_level ->
   ?stdin:Unix.file_descr ->
   ?stdout:Unix.file_descr -> 

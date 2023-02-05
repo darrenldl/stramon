@@ -92,7 +92,7 @@ end
 
 let monitor
     (type a)
-    ?(copy_raw_strace_to:Format.formatter option)
+    ?(copy_raw_strace:Format.formatter option)
     ?(debug_level = `None)
     ?(stdin = Unix.stdin)
     ?(stdout = Unix.stdout)
@@ -116,7 +116,7 @@ let monitor
       in
       let rec run () =
         let open Strace_pipe in
-        match read_line ?copy_raw_strace_to ctx strace_pipe with
+        match read_line ?copy_raw_strace ctx strace_pipe with
         | Line line -> (
             process_line ~debug_level handler_db ctx line;
             run ()

@@ -12,6 +12,12 @@
   - `clone`
   - `clone3`
 
+- Made debug output more flexible
+
+  - Formatter to print debug output to can now be specified in `debug_level`
+
+- Added `copy_raw_strace` optional argument to `monitor`
+
 ## Stramon 0.2.2
 
 - Fixed `stramon-latest.json` symlink update

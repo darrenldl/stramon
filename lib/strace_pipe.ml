@@ -41,10 +41,10 @@ module Parsers = struct
     (pid, text, status)
 end
 
-let read_line ?(copy_raw_strace_to : Format.formatter option) (ctx : 'a Ctx.t) (pipe : in_channel) : read_result =
+let read_line ?(copy_raw_strace : Format.formatter option) (ctx : 'a Ctx.t) (pipe : in_channel) : read_result =
   let input_line () =
     let line = input_line pipe in
-    match copy_raw_strace_to with
+    match copy_raw_strace with
     | None -> line
     | Some formatter -> (
         Fmt.pf formatter "%s\n" line;
