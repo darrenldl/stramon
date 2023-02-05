@@ -15,7 +15,6 @@
   - `clone3`
   - `execve`
   - `execveat`
-  - `fexecve`
 
 - Made debug output more flexible
 

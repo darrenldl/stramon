@@ -33,7 +33,6 @@ let l : entry list = [
   make_entry "clone";
   make_entry "clone3";
   make_entry "execve";
-  make_entry ~typ_name:"execve" "fexecve";
   make_entry "execveat";
 ]
 

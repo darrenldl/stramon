@@ -299,7 +299,6 @@ module Syscall : sig
     | `clone of 'a -> int -> clone -> 'a
     | `clone3 of 'a -> int -> clone3 -> 'a
     | `execve of 'a -> int -> execve -> 'a
-    | `fexecve of 'a -> int -> execve -> 'a
     | `execveat of 'a -> int -> execveat -> 'a
   ]
   (** A handler receives the user-defined "context",

@@ -235,7 +235,6 @@ let handlers : ctx Stramon_lib.Syscall.handler list =
           { pid_tree; fs; net }
       );
     `execve execve_handler;
-    `fexecve execve_handler;
     `execveat execveat_handler;
   ]
 
