@@ -17,13 +17,13 @@ let roots (t : t) : Int_set.t =
     (pids t)
 
 let add ?parent pid (t : t) : t =
-  let t' =
+  let t =
     match Int_map.find_opt pid t with
     | None -> Int_map.add pid Int_set.empty t
     | Some _ -> t
   in
   match parent with
-  | None -> t'
+  | None -> t
   | Some parent ->
     match Int_map.find_opt parent t with
     | None -> Int_map.add parent Int_set.(add pid empty) t
