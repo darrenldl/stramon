@@ -281,10 +281,10 @@ let () =
               try
                 CCIO.with_out output_path (fun oc ->
                     let stats = Stramon_lib.Monitor_result.stats res in
-                    let {pid_tree = _; fs; net} =
+                    let {pid_tree; fs; net} =
                       Stramon_lib.Monitor_result.ctx res
                     in
-                    let summary = Summary.make stats fs net in
+                    let summary = Summary.make stats pid_tree fs net in
                     let json = Summary.to_json summary in
                     write_json oc json
                   )
