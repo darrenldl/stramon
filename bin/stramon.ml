@@ -25,7 +25,7 @@ If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME
     ("--no-link", Set no_link, Fmt.str "Disable adding/updating symlink %s" latest_link_name);
     ("--version", Set print_version, "Print version and exit");
     ("--debug", Set debug, "Enable debugging output to OUTPUT_PATH.debug");
-    ("--raw", Set save_raw, "Save a copy of the received strace output to OUTPUT_PATH.raw");
+    ("--raw", Set save_raw, "Copy received strace output to OUTPUT_PATH.raw");
     ("--", Rest add_to_command, "");
   ]
 
