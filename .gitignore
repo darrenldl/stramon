@@ -13,3 +13,5 @@ fuzz/core.*
 test.json
 /*.json
 /examples/stramon-latest.json
+/*.json.debug
+/*.json.raw
