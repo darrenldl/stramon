@@ -2,7 +2,7 @@
 
 ## Stramon 0.3.0
 
-- Added `tid` collection
+- Added `pid` collection
 
 ## Stramon-lib 0.4.0
 

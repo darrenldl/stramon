@@ -13,6 +13,8 @@ let print_version = ref false
 
 let debug = ref false
 
+let trace_pid_only = ref false
+
 let latest_link_name = "stramon-latest.json"
 
 let speclist = Arg.[
@@ -21,6 +23,7 @@ let speclist = Arg.[
 If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME.json|});
     ("-f", Set force_output, "Force overwrite of output file");
     ("--no-link", Set no_link, Fmt.str "Disable adding/updating symlink %s" latest_link_name);
+    ("--pid-only", Set trace_pid_only, "Trace pid/tid only, useful when you want to use Stramon in conjunction with a system level tracer, e.g. bpftrace");
     ("--version", Set print_version, "Print version and exit");
     ("--debug", Set debug, "Enable debugging output");
     ("--", Rest add_to_command, "");
