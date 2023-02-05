@@ -28,7 +28,7 @@ type 'a handler_db = (string, 'a Syscall.base_handler) Hashtbl.t
 
 type debug_level = [
   | `None
-  | `Registered
+  | `Registered of Format.formatter
 ]
 
 let process_line
@@ -49,8 +49,8 @@ let process_line
           | Error msg -> (
               (match debug_level with
                | `None -> ()
-               | `Registered ->
-                 Fmt.epr "@[<v>[pid: %d] Failed to parse blob: %a@,Error: %s@,@]"
+               | `Registered formatter ->
+                 Fmt.pf formatter "@[<v>[pid %d] Failed to parse blob: %a@,Error: %s@,@]"
                    pid
                    Syscall.pp_blob blob msg
               );
@@ -58,7 +58,8 @@ let process_line
           | Ok syscall -> (
               (match debug_level with
                | `None -> ()
-               | `Registered -> Fmt.epr "@[<v>[pid: %d] %a@,@]" pid Syscall.pp_base syscall
+               | `Registered formatter ->
+                 Fmt.pf formatter "@[<v>[pid %d] %a@,@]" pid Syscall.pp_base syscall
               );
               match f (Ctx.get_user_ctx ctx) pid syscall with
               | None -> ()
@@ -91,6 +92,7 @@ end
 
 let monitor
     (type a)
+    ?(copy_raw_strace_to:Format.formatter option)
     ?(debug_level = `None)
     ?(stdin = Unix.stdin)
     ?(stdout = Unix.stdout)
@@ -114,7 +116,7 @@ let monitor
       in
       let rec run () =
         let open Strace_pipe in
-        match read_line ctx strace_pipe with
+        match read_line ?copy_raw_strace_to ctx strace_pipe with
         | Line line -> (
             process_line ~debug_level handler_db ctx line;
             run ()

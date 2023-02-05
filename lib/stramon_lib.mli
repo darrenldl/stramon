@@ -326,10 +326,11 @@ end
 
 type debug_level = [
   | `None
-  | `Registered
+  | `Registered of Format.formatter
 ]
 
 val monitor :
+  ?copy_raw_strace_to:Format.formatter ->
   ?debug_level:debug_level ->
   ?stdin:Unix.file_descr ->
   ?stdout:Unix.file_descr -> 

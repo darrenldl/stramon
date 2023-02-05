@@ -41,9 +41,18 @@ module Parsers = struct
     (pid, text, status)
 end
 
-let read_line (ctx : 'a Ctx.t) (pipe : in_channel) : read_result =
+let read_line ?(copy_raw_strace_to : Format.formatter option) (ctx : 'a Ctx.t) (pipe : in_channel) : read_result =
+  let input_line () =
+    let line = input_line pipe in
+    match copy_raw_strace_to with
+    | None -> line
+    | Some formatter -> (
+        Fmt.pf formatter "%s\n" line;
+        line
+      )
+  in
   match
-    Angstrom.(parse_string ~consume:Consume.All) Parsers.line_p (input_line pipe)
+    Angstrom.(parse_string ~consume:Consume.All) Parsers.line_p (input_line ())
   with
   | Ok (pid, text, status) -> (
       let proc_ctx = Ctx.get_proc_ctx ctx ~pid in

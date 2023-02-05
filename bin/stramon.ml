@@ -13,6 +13,8 @@ let print_version = ref false
 
 let debug = ref false
 
+let save_raw = ref false
+
 let latest_link_name = "stramon-latest.json"
 
 let speclist = Arg.[
@@ -22,7 +24,8 @@ If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME
     ("-f", Set force_output, "Force overwrite of output file");
     ("--no-link", Set no_link, Fmt.str "Disable adding/updating symlink %s" latest_link_name);
     ("--version", Set print_version, "Print version and exit");
-    ("--debug", Set debug, "Enable debugging output");
+    ("--debug", Set debug, "Enable debugging output to OUTPUT_PATH.debug");
+    ("--raw", Set save_raw, "Save a copy of the received strace output to OUTPUT_PATH.raw");
     ("--", Rest add_to_command, "");
   ]
 
@@ -214,6 +217,13 @@ let handlers : ctx Stramon_lib.Syscall.handler list =
 
 let () =
   Sys.catch_break true;
+  let debug_oc = ref None in
+  let raw_oc = ref None in
+  let exit x =
+    Option.iter close_out !debug_oc;
+    Option.iter close_out !raw_oc;
+    exit x
+  in
   try
     Arg.parse speclist add_to_command usage_msg;
     if !print_version then (
@@ -246,11 +256,23 @@ let () =
           )
         )
       in
+      let debug_path = Fmt.str "%s.debug" output_path in
+      let raw_path = Fmt.str "%s.raw" output_path in
       let debug_level =
         if !debug then
-          `Registered
+          let oc = open_out_bin debug_path in
+          debug_oc := Some oc;
+          `Registered (Format.formatter_of_out_channel oc)
         else
           `None
+      in
+      let raw_formatter = 
+        if !save_raw then
+          let oc = open_out_bin raw_path in
+          raw_oc := Some oc;
+          Some (Format.formatter_of_out_channel oc)
+        else
+          None
       in
       if Sys.file_exists output_path && not !force_output then (
         Printf.eprintf "Error: File %s already exists\n" output_path;
@@ -267,6 +289,7 @@ let () =
         );
         match
           Stramon_lib.monitor
+            ?copy_raw_strace_to:raw_formatter
             ~debug_level
             ~handlers
             ~init_ctx:empty_ctx
