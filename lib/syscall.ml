@@ -704,11 +704,17 @@ let clone_of_base (base : base) : clone option =
   let errno_msg = base.errno_msg in
   let* child_tid = int_of_term base.ret in
   match base.args with
-  | `Flags flags :: _ ->
-    if child_tid >= 0 then
-      Some ({ flags; child_tid = Some child_tid; errno; errno_msg } : clone)
-    else
-      Some ({ flags; child_tid = None; errno; errno_msg } : clone)
+  | `Struct l ::  _ -> (
+      let* flags = List.assoc_opt "flags" l in
+      match flags with
+      | `Flags flags ->
+        if child_tid >= 0 then
+          Some ({ flags; child_tid = Some child_tid; errno; errno_msg } : clone)
+        else
+          Some ({ flags; child_tid = None; errno; errno_msg } : clone)
+      | _ ->
+        None
+    )
   | _ ->
     None
 
