@@ -50,14 +50,15 @@ let process_line
               (match debug_level with
                | `None -> ()
                | `Registered ->
-                 Fmt.epr "@[<v>Failed to parse blob: %a@,Error: %s@,@]"
+                 Fmt.epr "@[<v>[pid: %d] Failed to parse blob: %a@,Error: %s@,@]"
+                   pid
                    Syscall.pp_blob blob msg
               );
             )
           | Ok syscall -> (
               (match debug_level with
                | `None -> ()
-               | `Registered -> Fmt.epr "@[<v>%a@,@]" Syscall.pp_base syscall
+               | `Registered -> Fmt.epr "@[<v>[pid: %d] %a@,@]" pid Syscall.pp_base syscall
               );
               match f (Ctx.get_user_ctx ctx) pid syscall with
               | None -> ()
