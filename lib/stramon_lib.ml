@@ -92,54 +92,61 @@ end
 
 let monitor
     (type a)
-    ?(copy_raw_strace:Format.formatter option)
+    ?(copy_raw_strace : Format.formatter option)
     ?(debug_level = `None)
     ?(stdin = Unix.stdin)
     ?(stdout = Unix.stdout)
     ?(stderr = Unix.stderr)
+    ?(max_string_len = 32)
     ~(handlers : a Syscall.handler list)
     ~(init_ctx : a)
     (cmd : string list)
   : (a Monitor_result.t, string) result =
-  let syscalls = handlers
-                 |> List.map Syscall.base_handler_of_handler
-                 |> List.map fst
-  in
-  match Proc_utils.exec ~stdin ~stdout ~stderr ~syscalls cmd with
-  | Error msg -> Error msg
-  | Ok (_pid, strace_pipe, cleanup) -> (
-      let ctx = Ctx.make init_ctx in
-      let handler_db : a handler_db =
-        List.to_seq handlers
-        |> Seq.map Syscall.base_handler_of_handler
-        |> Hashtbl.of_seq
-      in
-      let rec run () =
-        let open Strace_pipe in
-        match read_line ?copy_raw_strace ctx strace_pipe with
-        | Line line -> (
-            process_line ~debug_level handler_db ctx line;
-            run ()
-          )
-        | Not_ready -> run ()
-        | Eof -> ()
-      in
-      let exn =
-        (
-          try
-            run ();
-            cleanup ();
-            None
-          with
-          | e -> (
-              cleanup ();
-              Some e
+  if max_string_len < 0 then
+    Error "monitor: Invalid max_string_len"
+  else (
+    let syscalls = handlers
+                   |> List.map Syscall.base_handler_of_handler
+                   |> List.map fst
+    in
+    match
+      Proc_utils.exec ~max_string_len ~stdin ~stdout ~stderr ~syscalls cmd
+    with
+    | Error msg -> Error msg
+    | Ok (_pid, strace_pipe, cleanup) -> (
+        let ctx = Ctx.make init_ctx in
+        let handler_db : a handler_db =
+          List.to_seq handlers
+          |> Seq.map Syscall.base_handler_of_handler
+          |> Hashtbl.of_seq
+        in
+        let rec run () =
+          let open Strace_pipe in
+          match read_line ?copy_raw_strace ctx strace_pipe with
+          | Line line -> (
+              process_line ~debug_level handler_db ctx line;
+              run ()
             )
-        )
-      in
-      Ok (Monitor_result.make
-            (Ctx.get_user_ctx ctx)
-            (Ctx.get_stats ctx)
-            exn
-         )
-    )
+          | Not_ready -> run ()
+          | Eof -> ()
+        in
+        let exn =
+          (
+            try
+              run ();
+              cleanup ();
+              None
+            with
+            | e -> (
+                cleanup ();
+                Some e
+              )
+          )
+        in
+        Ok (Monitor_result.make
+              (Ctx.get_user_ctx ctx)
+              (Ctx.get_stats ctx)
+              exn
+           )
+      )
+  )

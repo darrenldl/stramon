@@ -32,6 +32,9 @@ let l : entry list = [
   make_entry "fork";
   make_entry "clone";
   make_entry "clone3";
+  make_entry "execve";
+  make_entry ~typ_name:"execve" "fexecve";
+  make_entry "execveat";
 ]
 
 let output_path = Sys.argv.(1)

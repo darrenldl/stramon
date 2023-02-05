@@ -29,11 +29,6 @@ let int64_of_term (term : term) : int64 option =
   | `Int x -> Some x
   | _ -> None
 
-let int64_of_term (term : term) : int64 option =
-  match term with
-  | `Int x -> Some x
-  | _ -> None
-
 let int_of_term (term : term) : int option =
   let* x = int64_of_term term in
   try
@@ -48,6 +43,21 @@ let flags_of_term (term : term) : literal list option =
   | `Int x -> Some [ `Int x ]
   | `Const x -> Some [ `Const x ]
   | _ -> None
+
+let string_of_term (term : term) : string option =
+  match term with
+  | `String x -> Some x
+  | _ -> None
+
+let string_list_of_terms (l : term list) : string list option =
+  let rec aux acc l =
+    match l with
+    | [] -> Some (List.rev acc)
+    | x :: xs ->
+      let* s = string_of_term x in
+      aux (s :: acc) xs
+  in
+  aux [] l
 
 type base = {
   name : string;
@@ -742,4 +752,37 @@ let clone3_of_base (base : base) : clone3 option =
         None
     )
   | _ ->
+    None
+
+type execve = {
+  program : string;
+  argv : string list;
+}
+
+let execve_of_base (base : base) : execve option =
+  let* ret = int_of_term base.ret in
+  if ret >= 0 then
+    match base.args with
+    | [ `String program; `Array argv; _ ] ->
+      let+ argv = string_list_of_terms argv in
+      ({ program; argv } : execve)
+    | _ -> None
+  else
+    None
+
+type execveat = {
+  relative_to : string;
+  program : string;
+  argv : string list;
+}
+
+let execveat_of_base (base : base) : execveat option =
+  let* ret = int_of_term base.ret in
+  if ret >= 0 then
+    match base.args with
+    | [ `String relative_to; `String program; `Array argv; _ ] ->
+      let+ argv = string_list_of_terms argv in
+      ({ relative_to; program; argv } : execveat)
+    | _ -> None
+  else
     None

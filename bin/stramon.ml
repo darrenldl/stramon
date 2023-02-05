@@ -123,6 +123,27 @@ let fstatat_handler
   let fs = Fs_access.add path `stat fs in
   { pid_tree; fs; net }
 
+let execve_handler
+    ({ pid_tree; fs; net } : ctx)
+    (pid : int)
+    ({ program; argv } : Stramon_lib.Syscall.execve)
+  =
+  let open Stramon_lib in
+  let pid_tree = Pid_tree.add_exec pid program argv pid_tree in
+  let path = Abs_path.of_string_exn program in
+  let fs = Fs_access.add path `stat fs in
+  { pid_tree; fs; net }
+
+let execveat_handler
+    ({ pid_tree; fs; net } : ctx)
+    (pid : int)
+    ({ relative_to; program; argv } : Stramon_lib.Syscall.execveat)
+  =
+  let pid_tree = Pid_tree.add_exec pid program argv pid_tree in
+  let path = make_path ~relative_to program in
+  let fs = Fs_access.add path `stat fs in
+  { pid_tree; fs; net }
+
 let handlers : ctx Stramon_lib.Syscall.handler list =
   let open Stramon_lib in
   [
@@ -213,6 +234,9 @@ let handlers : ctx Stramon_lib.Syscall.handler list =
           let pid_tree = Pid_tree.add ~parent:pid child_tid pid_tree in
           { pid_tree; fs; net }
       );
+    `execve execve_handler;
+    `fexecve execve_handler;
+    `execveat execveat_handler;
   ]
 
 let () =
@@ -290,6 +314,7 @@ let () =
         match
           Stramon_lib.monitor
             ?copy_raw_strace:raw_formatter
+            ~max_string_len:4096
             ~debug_level
             ~handlers
             ~init_ctx:empty_ctx

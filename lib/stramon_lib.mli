@@ -262,6 +262,17 @@ module Syscall : sig
     errno_msg : string option;
   }
 
+  type execve = {
+    program : string;
+    argv : string list;
+  }
+
+  type execveat = {
+    relative_to : string;
+    program : string;
+    argv : string list;
+  }
+
   type 'a handler = [
     | `open_ of 'a -> int -> open_ -> 'a
     | `openat of 'a -> int -> openat -> 'a
@@ -287,6 +298,9 @@ module Syscall : sig
     | `fork of 'a -> int -> fork -> 'a
     | `clone of 'a -> int -> clone -> 'a
     | `clone3 of 'a -> int -> clone3 -> 'a
+    | `execve of 'a -> int -> execve -> 'a
+    | `fexecve of 'a -> int -> execve -> 'a
+    | `execveat of 'a -> int -> execveat -> 'a
   ]
   (** A handler receives the user-defined "context",
       process id, and finally the syscall specific data.
@@ -335,6 +349,7 @@ val monitor :
   ?stdin:Unix.file_descr ->
   ?stdout:Unix.file_descr -> 
   ?stderr:Unix.file_descr -> 
+  ?max_string_len:int ->
   handlers:'a Syscall.handler list ->
   init_ctx:'a ->
   string list ->

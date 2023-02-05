@@ -13,12 +13,18 @@
   - `fork`
   - `clone`
   - `clone3`
+  - `execve`
+  - `execveat`
+  - `fexecve`
 
 - Made debug output more flexible
 
   - Formatter to print debug output to can now be specified in `debug_level`
 
-- Added `copy_raw_strace` optional argument to `monitor`
+- Added more arguments to  to `monitor`
+
+  - `copy_raw_strace`
+  - `max_string_len`
 
 ## Stramon 0.2.2
 
