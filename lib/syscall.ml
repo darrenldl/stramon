@@ -678,12 +678,19 @@ let listen_of_base (base : base) : listen option =
   | _ -> None
 
 type fork = {
-  pid : int;
+  pid : int option;
+  errno : string option;
+  errno_msg : string option;
 }
 
 let fork_of_base (base : base) : fork option =
+  let errno = base.errno in
+  let errno_msg = base.errno_msg in
   let+ pid = int_of_term base.ret in
-  { pid }
+  if pid >= 0 then
+    { pid = Some pid; errno; errno_msg }
+  else
+    { pid = None; errno; errno_msg }
 
 type clone = {
   flags : literal list;

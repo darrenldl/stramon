@@ -243,7 +243,9 @@ module Syscall : sig
   }
 
   type fork = {
-    pid : int;
+    pid : int option;
+    errno : string option;
+    errno_msg : string option;
   }
 
   type clone = {
