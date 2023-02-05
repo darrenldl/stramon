@@ -13,8 +13,6 @@ let print_version = ref false
 
 let debug = ref false
 
-let trace_pid_only = ref false
-
 let latest_link_name = "stramon-latest.json"
 
 let speclist = Arg.[
@@ -23,7 +21,6 @@ let speclist = Arg.[
 If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME.json|});
     ("-f", Set force_output, "Force overwrite of output file");
     ("--no-link", Set no_link, Fmt.str "Disable adding/updating symlink %s" latest_link_name);
-    ("--pid-only", Set trace_pid_only, "Track pid/tid only, useful for using Stramon in conjunction with a system level tracer, e.g. bpftrace");
     ("--version", Set print_version, "Print version and exit");
     ("--debug", Set debug, "Enable debugging output");
     ("--", Rest add_to_command, "");
@@ -45,6 +42,18 @@ let make_path ~relative_to path =
     cwd
   else
     Abs_path.of_string_exn ~cwd path
+
+type ctx = {
+  pid_tree : Pid_tree.t;
+  fs : Fs_access.t;
+  net : Net_access.t;
+}
+
+let empty_ctx = {
+  pid_tree = Pid_tree.empty;
+  fs = Fs_access.empty;
+  net = Net_access.empty;
+}
 
 let open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Syscall.literal list) =
   let l = List.filter (fun x ->
@@ -69,111 +78,137 @@ let open_handler access (path : Stramon_lib.Abs_path.t) (flags : Stramon_lib.Sys
   | _ -> access
 
 let chmod_handler
-    ((fs, net) : Fs_access.t * Net_access.t)
-    (_pid : int)
+    ({ pid_tree; fs; net } : ctx)
+    (pid : int)
     ({ path; _ } : Stramon_lib.Syscall.chmod)
   =
   let open Stramon_lib in
+  let pid_tree = Pid_tree.add pid pid_tree in
   let path = Abs_path.of_string_exn path in
   let fs = Fs_access.add path `chmod fs in
-  (fs, net)
+  { pid_tree; fs; net }
 
 let chown_handler
-    ((fs, net) : Fs_access.t * Net_access.t)
-    (_pid : int)
+    ({ pid_tree; fs; net } : ctx)
+    (pid : int)
     ({ path; _ } : Stramon_lib.Syscall.chown)
   =
   let open Stramon_lib in
+  let pid_tree = Pid_tree.add pid pid_tree in
   let path = Abs_path.of_string_exn path in
   let fs = Fs_access.add path `chown fs in
-  (fs, net)
+  { pid_tree; fs; net }
 
 let stat_handler
-    ((fs, net) : Fs_access.t * Net_access.t)
-    (_pid : int)
+    ({ pid_tree; fs; net } : ctx)
+    (pid : int)
     ({ path; _ } : Stramon_lib.Syscall.stat)
   =
   let open Stramon_lib in
+  let pid_tree = Pid_tree.add pid pid_tree in
   let path = Abs_path.of_string_exn path in
   let fs = Fs_access.add path `stat fs in
-  (fs, net)
+  { pid_tree; fs; net }
 
 let fstatat_handler
-    ((fs, net) : Fs_access.t * Net_access.t)
-    (_pid : int)
+    ({ pid_tree; fs; net } : ctx)
+    (pid : int)
     ({ relative_to; path; _ } : Stramon_lib.Syscall.fstatat)
   =
+  let pid_tree = Pid_tree.add pid pid_tree in
   let path = make_path ~relative_to path in
   let fs = Fs_access.add path `stat fs in
-  (fs, net)
+  { pid_tree; fs; net }
 
-let handlers : (Fs_access.t * Net_access.t) Stramon_lib.Syscall.handler list =
+let handlers : ctx Stramon_lib.Syscall.handler list =
   let open Stramon_lib in
   [
-    `open_ (fun (fs, net) _pid ({ path; flags; mode = _ } : Syscall.open_) ->
+    `open_ (fun { pid_tree; fs; net } pid ({ path; flags; mode = _ } : Syscall.open_) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
         let path = Abs_path.of_string_exn path in
         let fs = open_handler fs path flags in
-        (fs, net)
+        { pid_tree; fs; net }
       );
-    `openat (fun (fs, net) _pid ({ relative_to; path; flags; mode = _ } : Syscall.openat) ->
+    `openat (fun { pid_tree; fs; net } pid ({ relative_to; path; flags; mode = _ } : Syscall.openat) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
         let path = make_path ~relative_to path in
         let fs = open_handler fs path flags in
-        (fs, net)
+        { pid_tree; fs; net }
       );
     `chmod chmod_handler;
     `fchmod chmod_handler;
-    `fchmodat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchmodat) ->
+    `fchmodat (fun { pid_tree; fs; net } pid ({ relative_to; path; _ } : Syscall.fchmodat) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
         let path = make_path ~relative_to path in
         let fs = Fs_access.add path `chmod fs in
-        (fs, net)
+        { pid_tree; fs; net }
       );
     `chown chown_handler;
     `fchown chown_handler;
     `lchown chown_handler;
-    `fchownat (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.fchownat) ->
+    `fchownat (fun { pid_tree; fs; net } pid ({ relative_to; path; _ } : Syscall.fchownat) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
         let path = make_path ~relative_to path in
         let fs = Fs_access.add path `chown fs in
-        (fs, net)
+        { pid_tree; fs; net }
       );
     `stat stat_handler;
     `lstat stat_handler;
     `fstat stat_handler;
     `fstatat64 fstatat_handler;
-    `statx (fun (fs, net) _pid ({ relative_to; path; _ } : Syscall.statx) ->
+    `statx (fun { pid_tree; fs; net } pid ({ relative_to; path; _ } : Syscall.statx) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
         let path = make_path ~relative_to path in
         let fs = Fs_access.add path `stat fs in
-        (fs, net)
+        { pid_tree; fs; net }
       );
     `newfstatat fstatat_handler;
-    `socket (fun (fs, net) _pid (_ : Syscall.socket) ->
-        (fs, net)
+    `socket (fun { pid_tree; fs; net } pid (_ : Syscall.socket) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
+        { pid_tree; fs; net }
       );
-    `connect (fun (fs, net) _pid ({ socket = _; addr } : Syscall.connect) ->
+    `connect (fun { pid_tree; fs; net } pid ({ socket = _; addr } : Syscall.connect) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
         let net = Net_access.add `Connect addr net in
-        (fs, net)
+        { pid_tree; fs; net }
       );
-    `accept (fun (fs, net) _pid ({ socket = _; addr } : Syscall.accept) ->
+    `accept (fun { pid_tree; fs; net } pid ({ socket = _; addr } : Syscall.accept) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
         match addr with
-        | None -> (fs, net)
+        | None -> { pid_tree; fs; net }
         | Some addr ->
           let net = Net_access.add `Accept addr net in
-          (fs, net)
+          { pid_tree; fs; net }
       );
-    `bind (fun (fs, net) _pid ({ socket = _; addr } : Syscall.bind) ->
+    `bind (fun { pid_tree; fs; net } pid ({ socket = _; addr } : Syscall.bind) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
         let net = Net_access.add `Bind addr net in
-        (fs, net)
+        { pid_tree; fs; net }
       );
-    `listen (fun (fs, net) _pid (_ : Syscall.listen) ->
-        (fs, net)
+    `listen (fun { pid_tree; fs; net } pid (_ : Syscall.listen) ->
+        let pid_tree = Pid_tree.add pid pid_tree in
+        { pid_tree; fs; net }
       );
-    `fork (fun (fs, net) _pid (_ : Syscall.fork) ->
-        (fs, net)
+    `fork (fun { pid_tree; fs; net } pid ({ pid = child_pid; _ } : Syscall.fork) ->
+        match child_pid with
+        | None -> { pid_tree; fs; net }
+        | Some child_pid ->
+          let pid_tree = Pid_tree.add ~parent:pid child_pid pid_tree in
+          { pid_tree; fs; net }
       );
-    `clone (fun (fs, net) _pid (_ : Syscall.clone) ->
-        (fs, net)
+    `clone (fun { pid_tree; fs; net } pid ({ child_tid; _ } : Syscall.clone) ->
+        match child_tid with
+        | None -> { pid_tree; fs; net }
+        | Some child_tid ->
+          let pid_tree = Pid_tree.add ~parent:pid child_tid pid_tree in
+          { pid_tree; fs; net }
       );
-    `clone3 (fun (fs, net) _pid (_ : Syscall.clone3) ->
-        (fs, net)
+    `clone3 (fun { pid_tree; fs; net } pid ({ child_tid; _ } : Syscall.clone3) ->
+        match child_tid with
+        | None -> { pid_tree; fs; net }
+        | Some child_tid ->
+          let pid_tree = Pid_tree.add ~parent:pid child_tid pid_tree in
+          { pid_tree; fs; net }
       );
   ]
 
@@ -234,7 +269,7 @@ let () =
           Stramon_lib.monitor
             ~debug_level
             ~handlers
-            ~init_ctx:(Fs_access.empty, Net_access.empty)
+            ~init_ctx:empty_ctx
             command
         with
         | Error msg -> (
@@ -246,7 +281,9 @@ let () =
               try
                 CCIO.with_out output_path (fun oc ->
                     let stats = Stramon_lib.Monitor_result.stats res in
-                    let (fs, net) = Stramon_lib.Monitor_result.ctx res in
+                    let {pid_tree = _; fs; net} =
+                      Stramon_lib.Monitor_result.ctx res
+                    in
                     let summary = Summary.make stats fs net in
                     let json = Summary.to_json summary in
                     write_json oc json
