@@ -32,14 +32,18 @@ let add ?parent pid (t : t) : t =
 let json_tree_from_root root t =
   let rec aux root : string * Yojson.Basic.t =
     let children = Int_map.find root t in
-    let subtrees =
-      Int_set.to_seq children
-      |> Seq.map (fun c ->
-          aux c
-        )
-      |> List.of_seq
-    in
-    (string_of_int root, `Assoc subtrees)
+    if Int_set.is_empty children then
+      (string_of_int root, `Null)
+    else (
+      let subtrees =
+        Int_set.to_seq children
+        |> Seq.map (fun c ->
+            aux c
+          )
+        |> List.of_seq
+      in
+      (string_of_int root, `Assoc subtrees)
+    )
   in
   aux root
 
