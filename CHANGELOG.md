@@ -2,7 +2,7 @@
 
 ## Stramon 0.3.0
 
-- Added `pid` collection
+- Added pid and command collection
 - Debug output now is stored into a file
 - Added `--raw` flag to copy raw strace output into a file
 
