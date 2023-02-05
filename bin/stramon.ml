@@ -289,7 +289,7 @@ let () =
         );
         match
           Stramon_lib.monitor
-            ?copy_raw_strace_to:raw_formatter
+            ?copy_raw_strace:raw_formatter
             ~debug_level
             ~handlers
             ~init_ctx:empty_ctx
