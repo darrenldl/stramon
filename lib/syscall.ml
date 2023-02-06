@@ -755,7 +755,7 @@ let clone3_of_base (base : base) : clone3 option =
     None
 
 type execve = {
-  program : string;
+  prog : string;
   argv : string list;
 }
 
@@ -763,16 +763,16 @@ let execve_of_base (base : base) : execve option =
   let* ret = int_of_term base.ret in
   if ret >= 0 then
     match base.args with
-    | [ `String program; `Array argv; _ ] ->
+    | [ `String prog; `Array argv; _ ] ->
       let+ argv = string_list_of_terms argv in
-      ({ program; argv } : execve)
+      ({ prog; argv } : execve)
     | _ -> None
   else
     None
 
 type execveat = {
   relative_to : string;
-  program : string;
+  prog : string;
   argv : string list;
 }
 
@@ -780,9 +780,9 @@ let execveat_of_base (base : base) : execveat option =
   let* ret = int_of_term base.ret in
   if ret >= 0 then
     match base.args with
-    | [ `String relative_to; `String program; `Array argv; _ ] ->
+    | [ `String relative_to; `String prog; `Array argv; _ ] ->
       let+ argv = string_list_of_terms argv in
-      ({ relative_to; program; argv } : execveat)
+      ({ relative_to; prog; argv } : execveat)
     | _ -> None
   else
     None

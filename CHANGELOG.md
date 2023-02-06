@@ -1,5 +1,13 @@
 # Changlog
 
+## Stramon 0.3.1
+
+- Updated command tracking to handle multiple use of `execve` or `execveat` properly
+
+## Stramon-lib 0.5.0
+
+- Shortened `program` to `prog` in `Syscall.execve` and `Syscall.execveat`
+
 ## Stramon 0.3.0
 
 - Added pid and command tracking

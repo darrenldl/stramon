@@ -1,5 +1,10 @@
+type exec = {
+  prog : string;
+  argv : string list;
+}
+
 type t = {
-  execs : (string * string list) Int_map.t;
+  execs : exec list Int_map.t;
   tree : Int_set.t Int_map.t;
 }
 
@@ -31,13 +36,19 @@ let add ?parent pid (t : t) : t =
   match parent with
   | None -> t
   | Some parent ->
-    match Int_map.find_opt parent t.tree with
-    | None -> { t with tree = Int_map.add parent Int_set.(add pid empty) t.tree }
-    | Some s -> { t with tree = Int_map.add parent Int_set.(add pid s) t.tree }
+    let s =
+      Option.value ~default:Int_set.empty
+      @@ Int_map.find_opt parent t.tree
+    in
+    { t with tree = Int_map.add parent Int_set.(add pid s) t.tree }
 
-let add_exec pid path argv (t : t) : t =
+let add_exec pid prog argv (t : t) : t =
   let t = add pid t in
-  { t with execs = Int_map.add pid (path, argv) t.execs }
+  let execs =
+    Option.value ~default:[ { prog; argv } ]
+    @@ Int_map.find_opt pid t.execs
+  in
+  { t with execs = Int_map.add pid execs t.execs }
 
 let json_tree_from_root root t =
   let rec aux root : string * Yojson.Basic.t =
@@ -57,6 +68,14 @@ let json_tree_from_root root t =
   in
   aux root
 
+let json_of_exec ({ prog; argv } : exec) : Yojson.Basic.t =
+  let argv = List.map (fun s -> `String s) argv in
+  `Assoc
+    [
+      ("prog", `String prog);
+      ("argv", `List argv);
+    ]
+
 let to_json (t : t) : Yojson.Basic.t =
   let flatten_set s =
     s
@@ -69,14 +88,11 @@ let to_json (t : t) : Yojson.Basic.t =
   in
   let exec_lookup =
     Int_map.to_seq t.execs
-    |> Seq.map (fun (pid, (program, argv)) ->
-        let argv = List.map (fun s -> `String s) argv in
+    |> Seq.map (fun (pid, execs) ->
         (string_of_int pid,
-         `Assoc
-           [
-             ("program", `String program);
-             ("argv", `List argv);
-           ]
+         (match execs with
+          | [ exec ] -> json_of_exec exec
+          | _ -> `List (List.map json_of_exec execs))
         )
       )
     |> List.of_seq

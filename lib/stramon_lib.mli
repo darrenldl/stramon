@@ -263,13 +263,13 @@ module Syscall : sig
   }
 
   type execve = {
-    program : string;
+    prog : string;
     argv : string list;
   }
 
   type execveat = {
     relative_to : string;
-    program : string;
+    prog : string;
     argv : string list;
   }
 

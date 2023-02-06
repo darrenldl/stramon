@@ -126,21 +126,21 @@ let fstatat_handler
 let execve_handler
     ({ pid_tree; fs; net } : ctx)
     (pid : int)
-    ({ program; argv } : Stramon_lib.Syscall.execve)
+    ({ prog; argv } : Stramon_lib.Syscall.execve)
   =
   let open Stramon_lib in
-  let pid_tree = Pid_tree.add_exec pid program argv pid_tree in
-  let path = Abs_path.of_string_exn program in
+  let pid_tree = Pid_tree.add_exec pid prog argv pid_tree in
+  let path = Abs_path.of_string_exn prog in
   let fs = Fs_access.add path `stat fs in
   { pid_tree; fs; net }
 
 let execveat_handler
     ({ pid_tree; fs; net } : ctx)
     (pid : int)
-    ({ relative_to; program; argv } : Stramon_lib.Syscall.execveat)
+    ({ relative_to; prog; argv } : Stramon_lib.Syscall.execveat)
   =
-  let pid_tree = Pid_tree.add_exec pid program argv pid_tree in
-  let path = make_path ~relative_to program in
+  let pid_tree = Pid_tree.add_exec pid prog argv pid_tree in
+  let path = make_path ~relative_to prog in
   let fs = Fs_access.add path `stat fs in
   { pid_tree; fs; net }
 
