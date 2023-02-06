@@ -45,8 +45,9 @@ let add ?parent pid (t : t) : t =
 let add_exec pid prog argv (t : t) : t =
   let t = add pid t in
   let execs =
-    Option.value ~default:[ { prog; argv } ]
-    @@ Int_map.find_opt pid t.execs
+    Int_map.find_opt pid t.execs
+    |> Option.value ~default:[]
+    |> (fun l -> { prog; argv } :: l)
   in
   { t with execs = Int_map.add pid execs t.execs }
 
@@ -92,7 +93,7 @@ let to_json (t : t) : Yojson.Basic.t =
         (string_of_int pid,
          (match execs with
           | [ exec ] -> json_of_exec exec
-          | _ -> `List (List.map json_of_exec execs))
+          | _ -> `List (execs |> List.rev |> List.map json_of_exec))
         )
       )
     |> List.of_seq
