@@ -8,8 +8,6 @@ in releases right now.
 
 ## Usage
 
-### Typical usage
-
 To trace a command:
 ```
 $ stramon CMD
@@ -22,7 +20,7 @@ to the newest JSON file
 $ cat stramon-latest.json | jq "."
 ```
 
-### Help message
+## Help message
 
 ```
 $ straamon --help
@@ -38,6 +36,6 @@ If provided path PATH is a directory, then output path is PATH/stramon_DATE-TIME
   --help  Display this list of options
 ```
 
-## Examples
+## Example JSON files
 
 - Firefox: `examples/firefox.json`
