@@ -1,5 +1,13 @@
 # Changlog
 
+## Stramon 0.3.2
+
+- Updated to use new version of Stramon-lib
+
+## Stramon-lib 0.5.1
+
+- Optimized parsing code slightly
+
 ## Stramon 0.3.1
 
 - Updated command tracking to handle multiple use of `execve` or `execveat` properly
