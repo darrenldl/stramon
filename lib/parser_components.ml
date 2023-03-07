@@ -128,10 +128,10 @@ let spaces = skip_while is_space
 let spaces1 = take_while1 is_space *> return ()
 
 let sep_by_comma (p : 'a t) : 'a list t =
-  sep_by (spaces *> comma *> spaces) p
+  sep_by (comma *> spaces) p
 
 let sep_by_comma1 (p : 'a t) : 'a list t =
-  sep_by1 (spaces *> comma *> spaces) p
+  sep_by1 (comma *> spaces) p
 
 let invalid_syntax ~text ~pos =
   fail (Printf.sprintf "Invalid syntax: %s, pos: %d" text pos)

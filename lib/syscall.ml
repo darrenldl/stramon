@@ -71,8 +71,11 @@ module Parsers = struct
   open Angstrom
   open Parser_components
 
+  let lexeme p =
+    p <* spaces
+
   let name_p =
-    spaces *> non_space_string <* spaces
+    non_space_string
 
   let hex_string_p p =
     p >>= fun s ->
@@ -144,13 +147,15 @@ module Parsers = struct
 
   let key_term_pairs_p term_p : (string * term) list t =
     sep_by_comma
-      ((ident_string >>=
-        fun k ->
-        spaces *> char '=' *> spaces *>
-        term_p >>| fun v -> (k, v)
-       )
-       <|>
-       (term_p >>| fun v -> ("", v))
+      (lexeme
+         ((ident_string >>=
+           fun k ->
+           spaces *> char '=' *> spaces *>
+           term_p >>| fun v -> (k, v)
+          )
+          <|>
+          (term_p >>| fun v -> ("", v))
+         )
       )
 
   let struct_p term_p : (string * term) list t =
@@ -162,55 +167,56 @@ module Parsers = struct
 
   let term_p : term t =
     fix (fun p ->
-        choice [
-          (decoded_p >>| fun s -> `String s);
-          (pointer_p >>| fun s -> `Pointer s);
-          (int_p >>| fun n -> `Int n);
-          (char '"' *> hex_string_p non_quote_string >>= fun s ->
-           char '"' *> return (`String s)
-          );
-          (struct_p p
-           >>= fun l ->
-           ((
-             spaces *> string "=>" *> spaces
-             *> struct_p p >>| fun l' ->
-             `Struct
-               (List.map (fun (k, v) ->
-                    if k <> "" then (
-                      match List.assoc_opt k l' with
-                      | None -> (k, v)
-                      | Some v -> (k, v)
-                    ) else
-                      (k, v)
-                  ) l)
-           )
-             <|>
-             (return (`Struct l))
-           )
-          );
-          (char '[' *>
-           spaces *>
-           sep_by_comma p >>= fun l ->
-           spaces *>
-           char ']' *>
-           return (`Array l)
-          );
-          (ident_string >>= fun name ->
-           char '(' *>
-           sep_by_comma p >>= fun l ->
-           char ')' *>
-           return (`App (name, l))
-          );
-          (sep_by1 (char '|') literal_p >>| fun l ->
-           match l with
-           | [x] -> (x :> term)
-           | l -> `Flags l
-          );
-        ]
+        lexeme
+          (choice [
+              (decoded_p >>| fun s -> `String s);
+              (pointer_p >>| fun s -> `Pointer s);
+              (int_p >>| fun n -> `Int n);
+              (char '"' *> hex_string_p non_quote_string >>= fun s ->
+               char '"' *> return (`String s)
+              );
+              (struct_p p
+               >>= fun l ->
+               ((
+                 spaces *> string "=>" *> spaces
+                 *> struct_p p >>| fun l' ->
+                 `Struct
+                   (List.map (fun (k, v) ->
+                        if k <> "" then (
+                          match List.assoc_opt k l' with
+                          | None -> (k, v)
+                          | Some v -> (k, v)
+                        ) else
+                          (k, v)
+                      ) l)
+               )
+                 <|>
+                 (return (`Struct l))
+               )
+              );
+              (char '[' *>
+               spaces *>
+               sep_by_comma p >>= fun l ->
+               spaces *>
+               char ']' *>
+               return (`Array l)
+              );
+              (ident_string >>= fun name ->
+               char '(' *>
+               sep_by_comma p >>= fun l ->
+               char ')' *>
+               return (`App (name, l))
+              );
+              (sep_by1 (char '|') (lexeme literal_p) >>| fun l ->
+               match l with
+               | [x] -> (x :> term)
+               | l -> `Flags l
+              );
+            ])
       )
 
   let args_p : term list t =
-    spaces *> key_term_pairs_p term_p <* spaces
+    spaces *> key_term_pairs_p term_p
     >>| fun l ->
     if List.for_all (fun (k, _) -> k = "") l then
       List.map snd l
@@ -218,7 +224,7 @@ module Parsers = struct
       [`Struct l]
 
   let ret_p : term t =
-    spaces *> term_p <* spaces
+    spaces *> term_p
 end
 
 let blob_of_string (str : string) : blob option =
