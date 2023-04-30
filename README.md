@@ -6,6 +6,26 @@ Process behavior monitoring utility and library based on strace
 Stramon is primarily distributed as a statically linked binary
 in releases right now.
 
+#### Building from source
+
+Easiest way is to first build a container image using the Dockerfile under `containers/static-build`
+
+```
+$ cd containers/static-build
+$ podman build . -t stramon
+```
+
+Then run `start-container.sh` to entire the container, then navigate to the
+mounted repo location within the container and use the static build make command
+
+```
+$ ./start-container.sh
+# cd /root/stramon # now we are inside the container
+# make release-static
+```
+
+The statically linked binary should now be available as `static-build/stramon`
+
 ## Usage
 
 To trace a command:
