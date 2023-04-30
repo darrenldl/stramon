@@ -15,7 +15,7 @@ $ cd containers/static-build
 $ podman build . -t stramon
 ```
 
-Then run `start-container.sh` to entire the container, then navigate to the
+Then run `start-container.sh` to start and enter the container, navigate to the
 mounted repo location within the container and use the static build make command
 
 ```
