@@ -8,15 +8,15 @@ in releases right now.
 
 #### Building from source
 
-Easiest way is to first build a container image using the Dockerfile under `containers/static-build`
+Easiest way is to first build a container image using the Dockerfile under `containers/statically-linked`
 
 ```
-$ cd containers/static-build
+$ cd containers/statically-linked
 $ podman build . -t stramon
 ```
 
 Then run `start-container.sh` to start and enter the container, navigate to the
-mounted repo location within the container and use the static build make command
+mounted repo location within the container and use the release static make command
 
 ```
 $ ./start-container.sh
@@ -24,7 +24,7 @@ $ ./start-container.sh
 # make release-static
 ```
 
-The statically linked binary should now be available as `static-build/stramon`
+The statically linked binary should now be available as `statically-linked/stramon`
 
 ## Usage
 
