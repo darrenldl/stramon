@@ -15,4 +15,4 @@ test.json
 /examples/stramon-latest.json
 /*.json.debug
 /*.json.raw
-static-build/
+statically-linked/

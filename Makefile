@@ -17,8 +17,8 @@ all:
 release-static :
 	./update-stramon-version-string.sh
 	OCAMLPARAM='_,ccopt=-static' dune build --release bin/stramon.exe
-	mkdir -p static-build
-	cp _build/default/bin/stramon.exe static-build/stramon
+	mkdir -p statically-linked
+	cp _build/default/bin/stramon.exe statically-linked/stramon
 
 .PHONY: lib-tests
 lib-tests :
